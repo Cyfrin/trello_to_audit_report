@@ -36,6 +36,12 @@ Then, verify it's installation:
 trello_to_audit_report -v
 ```
 
+To upgrade to the lastest version, run:
+
+```
+pipx upgrade trello_to_audit_report
+```
+
 You should get an output like `x.x.x`
 
 ### pip
