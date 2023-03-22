@@ -1,0 +1,945 @@
+Card ID,Card Name,Card URL,Card Description,Labels,Members,Due Date,Attachment Count,Attachment Links,Checklist Item Total Count,Checklist Item Completed Count,Vote Count,Comment Count,Last Activity Date,List ID,List Name,Board ID,Board Name,Archived,Start Date,Due Complete,Status,PoC
+6413c09bf829db99bba9d810,Is it possible for `newReserveJ` to be larger than `reserves[j]` in `_getRemoveLiquidityOneTokenOut`?,https://trello.com/c/qcjH2blZ/9-is-it-possible-for-newreservej-to-be-larger-than-reservesj-in-getremoveliquidityonetokenout,,TBD (black_light),patrickalphac,,0,,0,0,0,0,2023-03-17T01:22:31.384Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+64173895f8e1160ac98ca91f,No number of reserves validation in `LibLastReserveBytes::storeLastReserves`,https://trello.com/c/uspDFu23/14-no-number-of-reserves-validation-in-liblastreservebytesstorelastreserves,"The function `LibLastRes
+
+```
+function testStoreAndReadNumberReservesTooBig() public {
+        uint256 reservesSize = 256;
+        uint40 lastTimeStamp = 12345363;
+        bytes16[] memory reserves = new bytes16[](reservesSize);
+        reserves[0] = 0xffffffffffffffffffffffffffffffff;
+        reserves[1] = 0xffffffffffffffffffffffffffffffff;
+        reserves[255] = 0xffffffffffffffffffffffffffffffff;
+        //            0x10c6f7a0b5ed8d36b4c7f3493858
+        // timestamp uint40   5
+        // reserve   bytes16  16
+        // n         uint8    1 <- This is now too big
+        RESERVES_STORAGE_SLOT.storeLastReserves(lastTimeStamp, reserves);
+        (
+            uint8 n,
+            uint40 _lastTimeStamp,
+            bytes16[] memory _reserves
+        ) = RESERVES_STORAGE_SLOT.readLastReserves();
+        assertEq(reservesSize, n);
+    }
+```",MEDIUM (orange),patrickalphac,,0,,0,0,0,1,2023-03-19T16:40:57.508Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+6412467221536f57bcc769fa,Over/underflow arithmetic revert in `Well.getAddLiquidityOut()` on line 435,https://trello.com/c/DuykNV42/5-over-underflow-arithmetic-revert-in-wellgetaddliquidityout-on-line-435,"```
+lpAmountOut = _calcLpTokenSupply(wellFunction(), reserves) - totalSupply();
+```
+
+It is possible that the result of `_calcLpTokenSupply` is smaller than the result of `totalSupply()` resulting in a arithmetic error.
+
+‌
+
+# Potential Mitigation
+
+Check for double zero values in `addLiquidity` ?",TBD (black_light),alexroan2,,0,,0,0,0,3,2023-03-17T11:27:52.314Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+6410b501e24734164d4dd910,Over/underflow arithmetic revert in `Well._getRemoveLiquidityOneTokenOut()` on line 526.,https://trello.com/c/jwOsU7JH/4-over-underflow-arithmetic-revert-in-wellgetremoveliquidityonetokenout-on-line-526,"`_getRemoveLiquidityOneTokenOut()` Can revert with an under/overflow error even with valid input.
+
+```
+tokenAmountOut = reserves[j] - newReserveJ;
+```
+
+It is possible that `reserves[j]` is smaller than `newReserveJ`, resulting a an unintended arithmetic error.
+
+Failing unit test: [https://github.com/ChainAccelOrg/beanstalk-wells/blob/alex-audit-phase-2/test/invariant/GetRemoveLiquidityOneTokenOutArithmeticFail.t.sol](https://github.com/ChainAccelOrg/beanstalk-wells/blob/alex-audit-phase-2/test/invariant/GetRemoveLiquidityOneTokenOutArithmeticFail.t.sol ""‌"")",TBD (black_light),alexroan2,,0,,0,0,0,4,2023-03-17T11:27:46.402Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+64131fc0e0f0ca4a2034b9bb,`_getImmutableArgsOffset` is implemented differently than every other public version.,https://trello.com/c/Kxn1gXmH/8-getimmutableargsoffset-is-implemented-differently-than-every-other-public-version,"I’m seeing their `_getImmutableArgsOffset` is implemented different than one other edition: [https://github.com/wighawag/clones-with-immutable-args/blob/master/src/Clone.sol](https://github.com/wighawag/clones-with-immutable-args/blob/master/src/Clone.sol ""smartCard-inline"")  & [https://github.com/kalidao/keep/blob/379a7a685eb4823b9a76b765b254114692d5de36/src/ClubNFT.sol#L76](https://github.com/kalidao/keep/blob/379a7a685eb4823b9a76b765b254114692d5de36/src/ClubNFT.sol#L76 ""smartCard-inline"")
+
+‌
+
+This could be an issue, since a quick fuzz tests shows they do indeed have different results.
+
+`getArgAddressPub` uses the beanstalk implementation of `_getImmutableArgsOffset` for `_getArgAddress`
+
+‌
+
+`wigGetArgAddress` uses the `wighawwag` repo edition, and they each have different outpus
+
+```
+function testFuzzGetAddressOffset(uint256 dataLocation) public {
+        dataLocation = bound(dataLocation, 0, 100);
+        assertEq(
+            mockClone.getArgAddressPub(dataLocation),
+            mockClone.wigGetArgAddress(dataLocation)
+        );
+    }
+```",TBD (black_light),patrickalphac,,0,,0,0,0,1,2023-03-16T14:09:46.004Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+640f3d2728fec738e8558862,Info: `updateCollateralRatios` can make no changes and waste gas,https://trello.com/c/BBpkVnXc/3-info-updatecollateralratios-can-make-no-changes-and-waste-gas,"[updateCollateralRatios](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L85 ""‌"") has these two requires:
+
+```javascript
+require(_MCR <= config.MCR, ""Can only walk down the MCR"");
+require(_CCR <= config.CCR, ""Can only walk down the CCR"");
+```
+
+However, one could set `_MCR` and `CCR` to be the current values in the config.
+
+## Mitigation
+
+Consider adding to the comments that this is possible. Or, add a require that at least one of the two should be different than what is in the current config.",QA (green),,,0,,0,0,0,0,2023-03-13T15:13:16.702Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+640f3d2728fec738e8558860,Info: Use `is` when modifier returns booleans,https://trello.com/c/32rEMOK5/2-info-use-is-when-modifier-returns-booleans,"```
+  modifier checkCollateral(address _collateral) {
+      require(collateralConfig[_collateral].allowed, ""Invalid collateral address"");
+      _;
+  }
+```
+
+The [checkCollateral](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L128 ""‌"") modifier name could be more explicit with what it is “checking” for. For example:
+
+```
+isValidCollateral
+isAllowedCollateral
+requireValidCollateral
+```",QA (green),,,0,,0,0,0,0,2023-03-13T15:13:16.765Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+640f3d2728fec738e8558868,No stale price check for chainlink pricing,https://trello.com/c/VPn55N7g/6-no-stale-price-check-for-chainlink-pricing,"**Note: This should likely be reported to liquity too.**
+
+`_badChainlinkResponse` checks for:
+
+1. Call reverts
+2. Bad roundIds
+3. Bad timestamp
+4. Negative response
+
+But it doesn’t check for a stale price. [Chainlink price feeds](https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd ""‌"") have a update either:
+
+1. Every x minutes (based on the feed heartbeat)
+2. Or every x price deviation (based on the feed deviation threshold)
+
+In the event that a price feed isn’t updated, the project will continue to work with outdated prices, not knowing the prices are stale.
+
+```
+
+    function _badChainlinkResponse(ChainlinkResponse memory _response) internal view returns (bool) {
+        // Check for response call reverted
+        if (!_response.success) {
+            return true;
+        }
+        // Check for an invalid roundId that is 0
+        if (_response.roundId == 0) {
+            return true;
+        }
+        // Check for an invalid timeStamp that is 0, or in the future
+        if (_response.timestamp == 0 || _response.timestamp > block.timestamp) {
+            return true;
+        }
+        // Check for non-positive price
+        if (_response.answer <= 0) {
+            return true;
+        }
+        // No check on if the timestamp has responded in the last X hours
+        return false;
+    }
+```
+
+‌
+
+## Mitigation
+
+Add a stale check to `_badChainlinkResponse` with an `onlyOwner` parameter that can be modified.
+
+‌
+
+Something like the following
+
+```javascript
+uint256 private chainlinkOracleTimeout = 14400; // 4 hours in seconds might be a good starting point
+// ideally you'd have a per-feed timeout threshold - since different feeds have different thresholds
+
+uint256 lastUpdated = priceAggregator[_collateral].lastUpdate()
+uint256 secondsSince = block.timestamp - lastUpdated;
+if (secondsSince > chainlinkOracleTimeout) revert StalePrice();
+```",MEDIUM (orange),,,0,,0,0,0,0,2023-03-13T15:13:16.818Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+640f3d2728fec738e855886a,GAS: getCollateral doesn’t need _requireValidCollateralAddress,https://trello.com/c/n2UfRVK2/7-gas-getcollateral-doesnt-need-requirevalidcollateraladdress,"Since getCollateral is a view function and isn’t modifying state, it doesn’t need a require.",QA (green),,,0,,0,0,0,0,2023-03-13T15:13:16.867Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+640f3d2728fec738e855886c,ActivePool rebalance should be done after collateral amount change in the function sendCollateral,https://trello.com/c/E6YiY7E3/8-activepool-rebalance-should-be-done-after-collateral-amount-change-in-the-function-sendcollateral,"[ActivePool.sol#L175](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L175 ""‌"")
+
+Not sure on the severity yet but this part is suspicious.
+
+Will dig deeper later.",TBD (black_light),,,0,,0,0,0,0,2023-03-13T15:13:16.916Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Suspicious,
+640f3d2728fec738e8558880,Vault depositor frontrunning & lack of zero shares check,https://trello.com/c/Vu8bJPo9/18-vault-depositor-frontrunning-lack-of-zero-shares-check,"[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L331C26-L336](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L331C26-L336 ""smartCard-inline"")",LOW (yellow_light),,,0,,0,0,0,0,2023-03-13T15:13:16.985Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Suspicious,
+640f3d2728fec738e8558864,QA Findings,https://trello.com/c/zPuxbXS1/4-qa-findings,"### Wrong comments
+
+- [BorrowerOperations.sol#L660](https://github.com/ChainAccelOrg/2023-02-ethos/blob/4c57e1eddd12933ca2b9df5aee4ef90eba90154f/Ethos-Core/contracts/BorrowerOperations.sol#L660 ""‌"") : <collateral ratio> → <nominal ..>
+- [LiquityBase.sol#L49](https://github.com/ChainAccelOrg/2023-02-ethos/blob/49b81ba98f3e121bc0bd2f14b97e433ef52e9468/Ethos-Core/contracts/Dependencies/LiquityBase.sol#L49 ""‌"") : <ETH> → <collateral>
+
+### Misleading variable names
+
+- [TroveManager.sol#L715](https://github.com/ChainAccelOrg/2023-02-ethos/blob/49b81ba98f3e121bc0bd2f14b97e433ef52e9468/Ethos-Core/contracts/TroveManager.sol#L715 ""‌"") : `_troveArray` → `_troveOwnerArray`",QA (green),,,0,,0,0,0,0,2023-03-13T15:13:17.049Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+640f3d2728fec738e855885e,QA Findings,https://trello.com/c/29VZFKnG/1-qa-findings,"## Gas Save decimals using one line instead of 2
+
+[This line](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L63 ""‌"")
+
+```
+uint256 decimals = IERC20(collateral).decimals(); // @follow-up if decimals is not specified?
+config.decimals = decimals;
+```
+
+Could just be:
+
+```
+config.decimals = IERC20(collateral).decimals();
+```
+
+‌
+
+## Info: Use more explicit modifier names
+
+```
+  modifier checkCollateral(address _collateral) {
+      require(collateralConfig[_collateral].allowed, ""Invalid collateral address"");
+      _;
+  }
+```
+
+The [checkCollateral](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L128 ""‌"") modifier name could be more explicit with what it is “checking” for. For example:
+
+```
+isValidCollateral
+isAllowedCollateral
+requireValidCollateral
+```
+
+‌
+
+## Info: `UpdateCollateralRatios` can make no changes but still waste gas
+
+[updateCollateralRatios](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L85 ""‌"") has these two requires:
+
+```javascript
+require(_MCR <= config.MCR, ""Can only walk down the MCR"");
+require(_CCR <= config.CCR, ""Can only walk down the CCR"");
+```
+
+However, one could set `_MCR` and `CCR` to be the current values in the config.
+
+## Mitigation
+
+Consider adding to the comments that this is possible. Or, add a require that at least one of the two should be different than what is in the current config.
+
+## Gas: Balance and Allowance is checked on transfer
+
+[On this line](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L174 ""‌"")
+
+```
+_requireSufficientCollateralBalanceAndAllowance(msg.sender, _collateral, _collAmount);
+```
+
+You could make this simplier by checking the success of the transfer of the tokens.
+
+‌
+
+## Gas: Check contract earlier in function
+
+```
+checkContract(priceAggregatorAddress);
+```
+
+[This line](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/PriceFeed.sol#L118 ""‌"") can be checked earlier in the code, and therefore revert quicker saving users who call this function with a bad `priceAggregatorAddress` to waste less gas.
+
+‌
+
+## `console.sol` should be removed
+
+`console.sol` is a debugging contract, remove from main code.
+
+
+
+##",QA (green),,,0,,0,0,0,0,2023-03-13T15:13:17.106Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+640f3d2728fec738e8558878,Double entrypoint token can break vault if `inCaseTokensGetStuck` called with legacy address,https://trello.com/c/2YXRLFke/14-double-entrypoint-token-can-break-vault-if-incasetokensgetstuck-called-with-legacy-address,"`ReaperVaultV2::inCaseTokensGetStuck` can be called by an admin to withdraw tokens which are mistakenly sent to the vault. A double entrypoint token messes this up to cause complete withdrawal, breaking the vault.
+
+This isn't high severity as only admin can call this function; however, it certainly wouldn't be ideal as collaterals are immutable and USDT being upgradeable/high quality/large market cap collateral makes it a good candidate for this vulnerability.",MEDIUM (orange),,,0,,0,0,0,0,2023-03-13T15:13:17.177Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,true
+640f3d2728fec738e855887e,Inconsistent vault behaviour,https://trello.com/c/w7oqwgu8/17-inconsistent-vault-behaviour,"If `freeFunds == 0` then behaviour differs from `ReaperVault4626::convertToShares` [https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L326-L335](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L326-L335 ""smartCard-inline"").
+
+‌
+
+Not sure if this has any other implications, needs discussion.",LOW (yellow_light),,,0,,0,0,0,0,2023-03-13T15:13:17.230Z,640f3d2728fec738e8558815,Archive,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Need Discussion,
+6413c91da6597ad0f2354351,Each Well is responsible for ensuring that an `update` call cannot be made with a reserve of 0.,https://trello.com/c/HvKyB34F/10-each-well-is-responsible-for-ensuring-that-an-update-call-cannot-be-made-with-a-reserve-of-0,"Per: [https://github.com/BeanstalkFarms/Wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/pumps/GeoEmaAndCumSmaPump.sol#L26](https://github.com/BeanstalkFarms/Wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/pumps/GeoEmaAndCumSmaPump.sol#L26 ""smartCard-inline"")
+
+`Each Well is responsible for ensuring that an `update` call cannot be made with a reserve of 0.`
+
+However, I don’t see any requires or reverts if reserves are 0.",TBD (black_light),patrickalphac,,0,,0,0,0,0,2023-03-17T01:58:32.137Z,64131fa734f807ff239de82c,Ideas,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+64174f4f2721345654ad1229,Assuming `BLOCK_TIME` to count blocksPassed is sussssss,https://trello.com/c/cySj2Btd/16-assuming-blocktime-to-count-blockspassed-is-sussssss,"In `GeoEmaAndCumSmaPump` they do:
+
+```
+blocksPassed = (deltaTimestamp / BLOCK_TIME).fromUInt();
+```
+
+‌
+
+### \`BLOCK_TIME\` is not a good indicator of block numbers
+
+\`\``
+
+blocksPassed = (deltaTimestamp / BLOCK_TIME).fromUInt();
+
+\`\``
+
+### Mitigation
+
+Store \`block.number\` to a storage variable like \`lastBlockNumber\` (or pack it using a similar bytes mechanism to storing the reserves) then to get block passed do:
+
+\`\``javascript
+
+uint256 blocksPassed = block.number - lastBlockNumber;
+
+\`\``","LOW (yellow_light), TBD (black_light)",patrickalphac,,0,,0,0,0,0,2023-03-19T21:24:40.945Z,64131fa734f807ff239de82c,Ideas,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+64178c29b8ab4ff8710c378d,Is the EMA formula wrong?,https://trello.com/c/dmZPaKBH/17-is-the-ema-formula-wrong,"In `GeoEmaAndCumSmaPump` you see the formula to get ema is:
+
+```
+b.emaReserves[i] = b
+                .lastReserves[i]
+                .mul((ABDKMathQuad.ONE.sub(aN)))
+                .add(b.emaReserves[i].mul(aN));
+```
+
+aka:
+
+```
+ema[i] = emaYesterday[i] * (85065399433376081038215121361612832768 - aN) + ema[i] * aN
+```",TBD (black_light),patrickalphac,,0,,0,0,0,0,2023-03-19T22:30:36.091Z,64131fa734f807ff239de82c,Ideas,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+641799182ee7108340fd97d7,"`_capReserve` will cause ""real"" price to greatly deviate from TWAP",https://trello.com/c/gt4d1qBR/18-capreserve-will-cause-real-price-to-greatly-deviate-from-twap,We should write an invariant test on this.,TBD (black_light),patrickalphac,,0,,0,0,0,0,2023-03-20T00:04:54.107Z,64131fa734f807ff239de82c,Ideas,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+6417a3399239dcc32cbbdfab,TWAP is incorrect,https://trello.com/c/90nJTeFa/19-twap-is-incorrect,"Place the following in `Pump.Update.t.sol`
+
+Either I don’t understand the oracle, or `readTwaReserves` is wrong.
+
+```
+function testTWAReservesIsWrong() public {
+        increaseTime(12); // increase 12 seconds
+
+        bytes memory startCumulativeReserves = pump.readCumulativeReserves(
+            address(mWell)
+        );
+        uint256 lastTimestamp = block.timestamp;
+        increaseTime(120); // increase 120 seconds aka 10 blocks
+
+        (uint[] memory twaReserves, ) = pump.readTwaReserves(
+            address(mWell),
+            startCumulativeReserves,
+            lastTimestamp
+        );
+
+        assertApproxEqAbs(twaReserves[0], 1e6, 1);
+        assertApproxEqAbs(twaReserves[1], 2e6, 1);
+
+        vm.prank(user);
+        // gonna double it
+        // so our TWAP should now be ~3 & 6
+        b[0] = 2e6;
+        b[1] = 4e6;
+        mWell.update(address(pump), b, new bytes(0));
+
+        increaseTime(120); // increase 12 seconds aka 10 blocks
+        (twaReserves, ) = pump.readTwaReserves(
+            address(mWell),
+            startCumulativeReserves,
+            lastTimestamp
+        );
+
+        // the reserves of b[0]:
+        // - 1e6 * 10 blocks
+        // - 2e6 * 10 blocks
+        // average reserves over 20 blocks:
+        // - 15e5
+        // assertApproxEqAbs(twaReserves[0], 1.5e5, 1);
+        // instead, we get:
+        // b[0] = 2070529
+
+        // the reserves of b[1]:
+        // - 2e6 * 10 blocks
+        // - 4e6 * 10 blocks
+        // average reserves over 20 blocks:
+        // - 3e6
+        assertApproxEqAbs(twaReserves[1], 3e6, 1);
+        // instead, we get:
+        // b[1] = 4141059
+    }
+```",HIGH (red_dark),patrickalphac,,0,,0,0,0,0,2023-03-20T00:14:21.704Z,64131fa734f807ff239de82c,Ideas,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,Need Discussion,
+641a313e549f67763e95806c,QA / Informational,https://trello.com/c/IB0Sg3s5/20-qa-informational,"### [I] Non descriptive variable & function names are difficult to read
+
+Examples:
+
+\`b\`: In \`GeoEmaAndCumSmaPump::update\` -> \`returnedReserves\`
+
+\`aN\`: In \`GeoEmaAndCumSmaPump::update\` -> \`alphaN\` or \`alphaRaisedToTheDeltaTimeStamp\`
+
+\`A\`/\`_A\`: In \`GeoEmaAndCumSmaPump\` -> \`alpha\`
+
+\`readN\`: In \`GeoEmaAndCumSmaPump\` -> \`readNumberOfReserves\`
+
+‌
+
+### [I] Remove TODO Check if bytes shift is necessary
+
+In \`LibBytes16::readBytes16\` the following line has a \`TODO\`:
+
+```
+mstore(add(reserves, 64), shl(128, sload(slot))) // TODO: Check if byte shift is necessary
+```
+
+Since we store 2 reserve elements worth of data in a single slot, we indeed need the left shift. The following test shows how these are different:
+
+```javascript
+function testNeedLeftShift() public {
+        uint256 reservesSize = 2;
+        uint256 slotNumber = 12345;
+        bytes32 slot = bytes32(slotNumber);
+
+        bytes16[] memory leftShiftreserves = new bytes16[](reservesSize);
+        bytes16[] memory noShiftreserves = new bytes16[](reservesSize);
+
+        // store some data in the slot
+        assembly {
+            sstore(
+                slot,
+                0x0000000000000000000000000000007b00000000000000000000000000000011
+            )
+        }
+
+        // left shift
+        assembly {
+            mstore(add(leftShiftreserves, 32), sload(slot))
+            mstore(add(leftShiftreserves, 64), shl(128, sload(slot)))
+        }
+
+        // no shift
+        assembly {
+            mstore(add(noShiftreserves, 32), sload(slot))
+            mstore(add(noShiftreserves, 64), sload(slot))
+        }
+        assert(noShiftreserves[1] != leftShiftreserves[1]);
+    }
+```
+
+#### Mitigation
+
+Remove the \`TODO\` as the left shift is needed.
+
+### [I] Use \`_\` prefix on internal functions
+
+Ie, on functions like:
+
+```
+function getSlotForAddress(
+        address addressValue
+    ) internal pure returns (bytes32) {
+```
+
+It's more readable to have this function be named: `_getSlotForAddress`, so readers know it's an internal function.
+
+‌
+
+### [I] Missing test coverage for a number of functions
+
+\`GeoEmaAndCumSmaPump::getSlotsOffset\`, \`GeoEmaAndCumSmaPump::getDeltaTimestamp\`
+
+`_getImmutableArgsOffset`
+
+Add tests for these.
+
+### [I] Use \`uint256\` over \`uint\`.
+
+‌
+
+### [I] Don’t use magic numbers
+
+When using a number in the procotol, it should be clear what the number represents by storing it as a constant variable for the contract.
+
+in \`Well.sol\`, to get the calldata location of the pumps, you use the following:
+
+\`\``javascript
+
+uint dataLoc = LOC_VARIABLE + numberOfTokens() * 32 + wellFunctionDataLength();
+
+\`\``
+
+Without knowledge of what these numbers are doing, it might be tricky to read. We recommend assigning variables to consistent math operations, ie:
+
+```
+uint256 constant ONE_WORD = 32;
+uint256 constant PACKED_WORD = 20;
+.
+.
+.
+uint dataLoc = LOC_VARIABLE + numberOfTokens() * ONE_WORD + wellFunctionDataLength();
+```
+
+Also in functions like
+
+```
+assembly {
+            temp := sload(slot)
+            n := shr(248, temp) // n is stored all the way at the left
+            lastTimestamp := shr(208, temp) // timestamp is stored right afer
+        }
+```
+
+Numbers like \`248\` and \`208\` should have some meaning to them.
+
+Or when packing values:
+
+Having a note to say that the token array addresses are not packed, but the addresses in the initial deployment are packed. The pumps, on the other hand, ARE packed.
+
+### [I] Serveral FIXME lines throughout the code
+
+Occurances:
+
+- [https://github.com/BeanstalkFarms/Wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/libraries/LibWellConstructor.sol#L35](https://github.com/BeanstalkFarms/Wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/libraries/LibWellConstructor.sol#L35 ""smartCard-inline"")
+- [https://github.com/BeanstalkFarms/Wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/interfaces/IWell.sol#L351](https://github.com/BeanstalkFarms/Wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/interfaces/IWell.sol#L351 ""smartCard-inline"")
+
+### [I] Not enough use of natspec and comments on complex code blocks
+
+Many low level functions like \`encodeAndBoreWell\` need natspec. Many of the math heavy and libraries that are being used, can be difficult to understand without natspec.",QA (green),patrickalphac,,0,,0,0,0,0,2023-03-21T22:52:56.998Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+6410a45b88b7a7566183cdd0,Invariant `well.totalSupply() == wellFunction.calcLpTokenSupply()` does not hold true,https://trello.com/c/KeqkJ3Sf/3-invariant-welltotalsupply-wellfunctioncalclptokensupply-does-not-hold-true,"Invariant: `well.totalSupply() == wellFunction.calcLpTokenSupply(reserves, data)`
+
+‌
+
+After each `addLiquidity` function call, the invariant holds, but after every `removeLiquidity` function call, it doesn't.
+
+`swapFrom` is also demonstrated to break this invariant.
+
+Unit test: [https://github.com/ChainAccelOrg/beanstalk-wells/blob/alex-audit-phase-2/test/invariant/TotalSupplyVsWellFunctionSupplyCalcFail.t.sol](https://github.com/ChainAccelOrg/beanstalk-wells/blob/alex-audit-phase-2/test/invariant/TotalSupplyVsWellFunctionSupplyCalcFail.t.sol ""‌"")",HIGH (red_dark),alexroan2,,3,"https://trello.com/1/cards/6410a45b88b7a7566183cdd0/attachments/6411c7a4db9ba736b58e5189/download/TotalSupplyVsWellFunctionSupplyCalcFail.t.sol, https://trello.com/1/cards/6410a45b88b7a7566183cdd0/attachments/6411dce30b9b2e810bc2e29d/download/screenshot_76.png, https://trello.com/1/cards/6410a45b88b7a7566183cdd0/attachments/64187ef7f7a86cbc17c0fab0/download/H-01.md",0,0,0,16,2023-03-21T04:49:58.492Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,Co-Validated,
+640f3db4a8072f26a11e2984,Test,https://trello.com/c/b4DfRQi0/1-test,,,,,0,,0,0,0,0,2023-03-13T15:14:09.879Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+640f3dd971b0bf75889f47c5,Test,https://trello.com/c/CmVm14AV/2-test,,MEDIUM (orange),hans_cyfrin,,0,,0,0,0,0,2023-03-13T15:14:40.938Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+64144f0f913a285600ef3064,Invariant `well.getReserves()[0] == wellFunction.calcReserve(0)` does not hold true,https://trello.com/c/S9a3YJab/11-invariant-wellgetreserves0-wellfunctioncalcreserve0-does-not-hold-true,,HIGH (red_dark),alexroan2,,0,,0,0,0,0,2023-03-17T12:48:57.994Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+64130af8d4e8a706df06c2b1,Fee-on-transfer tokens are still problematic,https://trello.com/c/fweKU5zh/7-fee-on-transfer-tokens-are-still-problematic,"[https://github.com/ChainAccelOrg/beanstalk-wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/Well.sol#L173](https://github.com/ChainAccelOrg/beanstalk-wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/Well.sol#L173 ""‌"")
+
+### Summary
+
+The new commit has a new function implemented for fee-on-transfer tokens. But this is assuming the caller is honest and calls uses this new method for fee-on-transfer tokens.
+
+The key point of the previous finding is that the reserve value will be less than the actual balance when the swap functions are called with fee-on-transfer tokens.
+
+The issue still exists if the normal swap functions are called with fee-on-transfer tokens.
+
+### Mitigation
+
+The common mitigation for fee-on-transfer token is to decide the `amountIn` by the actual balance change after transfer. It does not make sense to expose separate swap functions as well.
+
+Recommend removing the new functions `swapFromFeeOnTransfer()` and `swapToFeeOnTransfer()` and use the actual balance change as `amountIn`.
+
+e.g.
+
+[https://github.com/ChainAccelOrg/beanstalk-wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/Well.sol#L182](https://github.com/ChainAccelOrg/beanstalk-wells/blob/e5441fc78f0fd4b77a898812d0fd22cb43a0af55/src/Well.sol#L182 ""‌"")
+
+```
+function swapFrom(
+    IERC20 fromToken,
+    IERC20 toToken,
+    uint amountIn,
+    uint minAmountOut,
+    address recipient,
+    uint deadline
+) external nonReentrant expire(deadline) returns (uint amountOut) {
+    uint256 prevBalance = fromToken.balanceOf(address(this));
+    fromToken.safeTransferFrom(msg.sender, address(this), amountIn);
+    amountIn = fromToken.balanceOf(address(this)) - prevBalance;
+    amountOut = _swapFrom(fromToken, toToken, amountIn, minAmountOut, recipient);
+}
+```",MEDIUM (orange),hans_cyfrin,,0,,0,0,0,0,2023-03-16T12:32:27.485Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,Self-Validated,
+64147f28a0ddb021304e7eec,"`LibLastReserveBytes::storeLastReserves` has no input validation for reserves value being too large, number of reserves, or timestamp being to large",https://trello.com/c/TDx9eXBi/12-liblastreservebytesstorelastreserves-has-no-input-validation-for-reserves-value-being-too-large-number-of-reserves-or-timestamp,"### `LibLastReserveBytes` `storeLastReserves` has no check for reserves being too large
+
+After every liquidity event & swap, the ""pumps"" are called and updated. To update the pump, they use the `LibLastReserveBytes::storeLastReserves` function. This packs the reserve data into `bytes32` slots in storage. A slot is then broken down into the following components:
+
+1. 1 byte for reserves array length
+2. 5 bytes for timeStamp
+3. 16 bytes for each reserve balance.
+
+This adds to 22 bytes total, but the function also attempts to pack the second reserve balance in the bytes32 object as well. This would mean, the bytes32 would need 38 bytes total:
+
+```
+1(length) + 5(timestamp) + 16(reserve balance 1) + 16(reserve balance 2) = 38 bytes
+```
+
+To fit all this data into the `bytes32` this, the function cuts of the last few bytes of the reserve balances using shift, that code is located here:
+
+```javascript
+uint8 n = uint8(reserves.length);
+assembly {
+                sstore(
+                    slot,
+                    or(
+                        or(shl(208, lastTimestamp), shl(248, n)),
+                        shl(104, shr(152, mload(add(reserves, 32))))
+                    )
+                )
+            }
+```
+
+This means, that if the amount being stored is too large, the actual stored value will be different than what was asked to be stored. You can see from this test.
+
+```javascript
+function testStoreAndReadTwo() public {
+        uint40 lastTimeStamp = 12345363;
+        bytes16[] memory reserves = new bytes16[](2);
+        reserves[0] = 0xffffffffffffffffffffffffffffffff; // This is too big!
+        reserves[1] = 0x11111111111111111111111100000000;
+        RESERVES_STORAGE_SLOT.storeLastReserves(lastTimeStamp, reserves);
+        (
+            uint8 n,
+            uint40 _lastTimeStamp,
+            bytes16[] memory _reserves
+        ) = RESERVES_STORAGE_SLOT.readLastReserves();
+        assertEq(2, n);
+        assertEq(lastTimeStamp, _lastTimeStamp);
+        assertEq(reserves[0], _reserves[0]); // This will fail
+        assertEq(reserves[1], _reserves[1]);
+        assertEq(reserves.length, _reserves.length);
+    }
+```
+
+The `LibBytes.sol` does seem to have a check that looks like so:
+
+```javascript
+require(reserves[0] <= type(uint128).max, ""ByteStorage: too large"");
+```
+
+This library is called by the `_setReserves` function after every reserve update in the well. So in practice, as the wells & pumps are setup, this check would cause a revert. However, a well that doesn't have this check could additionally trigger the pumps to cut off reserve data, meaning prices would be incorrect.
+
+Additionally, the error can be seen with the number of reserves, where if a well has more than 255 reserves, the `n` value will overflow and not be stored properly. You can see from this test:
+
+```
+function testStoreAndReadNumberReservesTooBig() public {
+        uint256 reservesSize = 256;
+        uint40 lastTimeStamp = 12345363;
+        bytes16[] memory reserves = new bytes16[](reservesSize);
+        reserves[0] = 0xffffffffffffffffffffffffffffffff;
+        reserves[1] = 0xffffffffffffffffffffffffffffffff;
+        reserves[255] = 0xffffffffffffffffffffffffffffffff;
+        //            0x10c6f7a0b5ed8d36b4c7f3493858
+        // timestamp uint40   5
+        // reserve   bytes16  16
+        // n         uint8    1 <- This is now too big
+        RESERVES_STORAGE_SLOT.storeLastReserves(lastTimeStamp, reserves);
+        (
+            uint8 n,
+            uint40 _lastTimeStamp,
+            bytes16[] memory _reserves
+        ) = RESERVES_STORAGE_SLOT.readLastReserves();
+        assertEq(reservesSize, n);
+    }
+```
+
+### Impact
+
+As the code is currently setup, there are checks on the well & constant product that would prevent any flash loans from occurring. Due to the modularity of the system however, a user implementing a custom Constant product (like a Quadratic Product formula) & a Well that doesn’t check the size of the reserves would mean this vulnerability would exist.
+
+By doing this, a user would be able to manipulate the price of the pump, allowing for oracle manipulation attack on protocols that rely on this pump.
+
+### Mitigation
+
+1. Add a check on the size of reserves in `LibLastReseveBytes`.
+
+Additionally add more comments to the `LibLastReseveBytes` to inform users about the invariants of the system, and how the max size of reserves should be equal to the max size of a bytes16, and not a `uint256`.
+
+You could additionally have all reserves be a `uint128` instead of a `uint256`.
+
+2\. Add a check on the number of reserves
+
+This is to mitigate the issue of `n` being too big.
+
+### Additionally
+
+The `timestamp` is also converted from a `uint256` → `uint40` , which also loses precision. However, the current `block.timestamp` is ~`1679244323` and the max `uint40` is `1097832383452` which means that in exactly `1097832383452` from now, the way timestamps are stored, will also break this library. However, that value is in around `~34,788` so we would just like to add that as a comment.",MEDIUM (orange),patrickalphac,,0,,0,0,0,9,2023-03-21T20:43:08.019Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,Co-Validated,true
+6415ec80d3709c28ecc87b92,Well not checking that pump update is not called with zero reserves,https://trello.com/c/YOZz6ovQ/13-well-not-checking-that-pump-update-is-not-called-with-zero-reserves,"### Well not checking that pump update is not called with zero reserves
+
+Per the natspec in \`GeoEmaAndCumSmaPump.sol\`:
+
+```
+  * Each Well is responsible for ensuring that an `update` call cannot be made with a reserve of 0.
+```
+
+We can see in the `Well.sol::_updatePumps` there is no such check.
+
+‌
+
+Additionally, this will make `GeoEmaAndCumSmaPump::getSlotsOffset` underflow if reserves length is 0.",LOW (yellow_light),patrickalphac,,0,,0,0,0,1,2023-03-20T15:22:29.204Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+641741ffb72b11ab166766c5,Pumps not checking reserves are too large on initialization,https://trello.com/c/6RAJo3Ap/15-pumps-not-checking-reserves-are-too-large-on-initialization,"### Pumps do not check reserves are too large on initialization
+
+In \`GeoEmaAndCumSmaPump.sol::_init\` the following line exists:
+
+```
+byteReserves[i] = reserves[i].fromUIntToLog2();
+```
+
+Which converts \`reserves[i]\` from a `uint256` -> `bytes16`. A `bytes16` object cannot hold all the data a possible \`uint256\` can.
+
+### Mitigation
+
+Add a check to make sure the `uint256` isn't too large.",LOW (yellow_light),patrickalphac,,0,,0,0,0,0,2023-03-21T22:57:29.266Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
+641a3373788ee4ea08a7cf0b,No check on if tokens in a well are the same,https://trello.com/c/F3upDt5G/21-no-check-on-if-tokens-in-a-well-are-the-same,,LOW (yellow_light),patrickalphac,,0,,0,0,0,0,2023-03-21T22:45:11.368Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+641a35bbb9c6c83beb25f0f6,Pumps do not check reserves are too large on initialization,https://trello.com/c/4CZ2Ub2u/23-pumps-do-not-check-reserves-are-too-large-on-initialization,"###
+
+In `GeoEmaAndCumSmaPump.sol::_init` the following line exists:
+
+```
+byteReserves[i] = reserves[i].fromUIntToLog2();
+```
+
+Which converts `reserves[i]` from a `uint256` -> `bytes16`. A `bytes16` object cannot hold all the data a possible `uint256` can.
+
+#### Mitigation
+
+Add a check to make sure the `uint256` isn't too large.",LOW (yellow_light),patrickalphac,,0,,0,0,0,0,2023-03-21T22:56:57.455Z,640f3d2728fec738e8558816,Findings,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+640f3d2728fec738e855886e,ActivePool._rebalance() does not take into account the case when the vault's strategy gets loss,https://trello.com/c/uCTNnSxM/9-activepoolrebalance-does-not-take-into-account-the-case-when-the-vaults-strategy-gets-loss,"[Ethos-Core/contracts/ActivePool.sol#L251](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L251 ""‌"")
+
+[Ethos-Core/contracts/ActivePool.sol#L282](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L282 ""‌"")
+
+[Ethos-Core/contracts/ActivePool.sol#L288](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L288 ""‌"")
+
+### Summary
+
+The protocol uses `ReaperVaultERC4626` to manage the collateral assets and farm profit. The vaults are connected to whitelisted strategies.
+
+But it is not guaranteed that the strategies earn profit all the time.
+
+On the other hand, in several places of `ActivePool._rebalance()`, the protocol assumes that it can get more than deposits all the time.
+
+For example, the protocol stores the deposit to the vault as `yieldingAmount` and use that to calculate the profit saying `more precisely`. But if the strategy incurs loss, the actual profit will be less than the calculated amount and it leads to the loss of pool.
+
+Another example is at L282 where the protocol withdraws specifying the collateral amount to receive but it will revert at the end if the strategy lost.
+
+Another example is at L251, where the protocol calculates the profit by subtracting the stored `yieldingAmount` from the `sharesToAssets`. This will revert as well if the strategy lost.
+
+### Impact
+
+The `_rebalance()` will revert almost all the time due to the third example. Because `_rebalance()` is called on important occasions, this leads to **insolvency of the protocol**.
+
+### Mitigation
+
+Do not assume `sharesToAssets>yieldingAmount` at all places mentioned and handle appropriately.",HIGH (red_dark),,,1,https://trello.com/1/cards/640f3d2728fec738e855886e/attachments/640f3d2828fec738e85589f1/download/Hans-H01.md,0,0,0,0,2023-03-13T15:13:14.038Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+641309fd2186ca75601ad517,[H-03] removeLiquidity logic is wrong for non-linear Constant Function AMMs,https://trello.com/c/JbVvKrF6/6-h-03-removeliquidity-logic-is-wrong-for-non-linear-constant-function-amms,"[https://github.com/BeanstalkFarms/Wells/blob/7c498215f843620cb24ec5bbf978c6495f6e5fe4/src/Well.sol#L308](https://github.com/BeanstalkFarms/Wells/blob/7c498215f843620cb24ec5bbf978c6495f6e5fe4/src/Well.sol#L308 ""smartCard-inline"")
+
+[https://github.com/BeanstalkFarms/Wells/blob/7c498215f843620cb24ec5bbf978c6495f6e5fe4/src/Well.sol#L335](https://github.com/BeanstalkFarms/Wells/blob/7c498215f843620cb24ec5bbf978c6495f6e5fe4/src/Well.sol#L335 ""smartCard-inline"")
+
+The current implementation of `removeLiquidity()` and `getRemoveLiquidityOut()` assumes variable-wise linearity of the Well function. (`calcLpTokenSupply`)
+
+Based on this assumption, the token amount to send to the LP is calculated as `tokenAmountsOut[i] = (lpAmountIn * reserves[i]) / lpTokenSupply`.
+
+But Well creators have freedom of choosing any kind of Well functions and recently non-linear (quadratic) function AMMs are being used by some new protocols. (See Numoen : [https://numoen.gitbook.io/numoen/](https://numoen.gitbook.io/numoen/ ""‌""))
+
+For non-linear Well functions, the current calculation of `tokenAmountsOut` will break the Well’s invariant.
+
+**Suggested Mitigation:**
+
+Because the protocol intends to provide freedom of choosing Well function , don’t try to calculate the token out amount. Instead, require the Well’s invariant does not change whenever `reserves` change.
+
+‌
+
+**Reference:**
+
+[https://github.com/code-423n4/2023-01-numoen/blob/2ad9a73d793ea23a25a381faadc86ae0c8cb5913/src/core/Pair.sol#L81](https://github.com/code-423n4/2023-01-numoen/blob/2ad9a73d793ea23a25a381faadc86ae0c8cb5913/src/core/Pair.sol#L81 ""smartCard-inline"")
+
+[https://3849841188-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FGuKdCWSQNAoGbiGZqOHD%2Fuploads%2FDN7H9CpyFTZ0lBit1Owk%2Fnumoen_whitepaper (2).pdf?alt=media&token=365db895-9368-4559-ad44-a08ffc31f0a2](https://3849841188-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FGuKdCWSQNAoGbiGZqOHD%2Fuploads%2FDN7H9CpyFTZ0lBit1Owk%2Fnumoen_whitepaper%20(2).pdf?alt=media&token=365db895-9368-4559-ad44-a08ffc31f0a2 ""‌"")
+
+‌",HIGH (red_dark),hans_cyfrin,,5,"https://trello.com/1/cards/641309fd2186ca75601ad517/attachments/641309fd2186ca75601ad540/download/screenshot_33.png, https://trello.com/1/cards/641309fd2186ca75601ad517/attachments/641309fd2186ca75601ad548/download/QuadraticWell.t.sol, https://trello.com/1/cards/641309fd2186ca75601ad517/attachments/641309fd2186ca75601ad54a/download/QuadraticWell.sol, https://trello.com/1/cards/641309fd2186ca75601ad517/attachments/641309fd2186ca75601ad54c/download/H-03.md, https://trello.com/1/cards/641309fd2186ca75601ad517/attachments/6413bd848c098051c1d7fa96/download/MockQuadraticWell.sol",0,0,0,5,2023-03-21T23:09:50.169Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,Co-Validated,true
+640f3d2728fec738e855887a,Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.,https://trello.com/c/ocErMrn2/15-users-would-lose-some-shares-during-withdrawal-in-reapervaultv2withdraw,"[Ethos-Vault/contracts/ReaperVaultV2.sol#L401](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L401 ""‌"")
+
+`https://github.com/yearn/yearn-vaults/blob/master/contracts/Vault.vy#L1151`
+
+## Summary
+
+In `ReaperVaultV2._withdraw()` it shouldn’t burn 100% of shares if vault balance is less than `value`.
+
+It should recalculate the share like the yearn vault.
+
+```
+        if value > vault_balance:
+            value = vault_balance
+            # NOTE: Burn # of shares that corresponds to what Vault has on-hand,
+            #       including the losses that were incurred above during withdrawals
+            shares = self._sharesForAmount(value + totalLoss)
+```
+
+‌
+
+## Impact
+
+`ReaperVaultV2._withdraw()` burns 100% of shares even if the vault balance is less than the required underlying amount.
+
+As a result, users would lose some shares during withdrawal.
+
+## Mitigation
+
+It should reduce shares to burn according to the final amount.",HIGH (red_dark),,,1,https://trello.com/1/cards/640f3d2728fec738e855887a/attachments/640f3d2828fec738e85589fb/download/Hans-H02.md,0,0,0,0,2023-03-13T15:12:25.552Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+640f3d2728fec738e8558870,"""Dust"" collaterals/shares are not cleared in ActivePool._rebalance()",https://trello.com/c/FA2SBlQ2/10-dust-collaterals-shares-are-not-cleared-in-activepoolrebalance,"[Ethos-Core/contracts/ActivePool.sol#L252](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L252 ""‌"")
+
+[Ethos-Core/contracts/ActivePool.sol#L267](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L267 ""‌"")
+
+### Summary
+
+The protocol uses `yieldClaimThreshold` to prevent unnecessary transfer of dust collateral profit (maybe to save gas?). And if `_amountLeavingPool==collAmount[_collateral]`, i.e. for the “last” withdrawal from the vault, the profit under the threshold is not claimed while the protocol considers it does not have any collaterals left in the vault.
+
+### Impact
+
+The unclaimed “dust” profit will be locked in the vault. Because the affected amount will be not substantial and it will occur only for edge cases, evaluate the severity to Med.
+
+### Mitigation
+
+At L266, check if `vars.finalBalance==0` and add the profit to the target withdraw amount (or redeem the whole owned shares). The redeemed profit will can be distributed by the following lines.",MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e8558870/attachments/640f3d2828fec738e85589f3/download/Hans-M01.md,0,0,0,0,2023-03-13T15:12:25.622Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+640f3d2728fec738e8558866,Some tokens do not allow changing allowance from non-zero to non-zero,https://trello.com/c/pekhSkPR/5-some-tokens-do-not-allow-changing-allowance-from-non-zero-to-non-zero,"### Code
+
+[SafeERC20.sol#L48](https://github.com/ChainAccelOrg/2023-02-ethos/blob/49b81ba98f3e121bc0bd2f14b97e433ef52e9468/Ethos-Core/contracts/Dependencies/SafeERC20.sol#L48 ""‌"")
+
+[ActivePool.sol#L180](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L180 ""‌"")
+
+### Summary
+
+Some tokens (like USDT) do not work when changing the allowance from an existing non-zero allowance value. They must first be approved by zero and then the actual allowance must be approved.
+
+### Ref
+
+[https://github.com/code-423n4/2022-12-tigris-findings/issues/104](https://github.com/code-423n4/2022-12-tigris-findings/issues/104 ""smartCard-inline"")
+
+[https://github.com/d-xo/weird-erc20#approval-race-protections](https://github.com/d-xo/weird-erc20#approval-race-protections ""smartCard-inline"")",MEDIUM (orange),,,2,"https://trello.com/1/cards/640f3d2728fec738e8558866/attachments/640f3d2828fec738e85589e6/download/screenshot_15.png, https://trello.com/1/cards/640f3d2728fec738e8558866/attachments/640f3d2828fec738e85589ef/download/Hans-M02.md",0,0,0,0,2023-03-13T15:12:25.710Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Co-Validated,
+640f3d2728fec738e8558872,Lack of blacklisting collateral,https://trello.com/c/3LXRSIG0/11-lack-of-blacklisting-collateral,"[Ethos-Core/contracts/CollateralConfig.sol#L128](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/CollateralConfig.sol#L128 ""‌"")
+
+[Ethos-Core/contracts/CollateralConfig.sol#L106](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/CollateralConfig.sol#L106 ""‌"")
+
+### Summary
+
+The protocol is designed to be able to support multiple ERC20 tokens.
+
+All the important interactions are checked to be for _allowed_ collateral tokens.
+
+The _allowed_ collaterals are set on the initialization of `CollateralConfig`.
+
+But there is no way to `remove` or `blacklist` an existing collateral token.
+
+While I guess the protocol team is aware of this, I believe it’s worth flagging it again because this is very dangerous. Imagine an allowed collateral is exploited in some way. It might lead to massive liquidation of troves and StabilityPool depositors will end up losing LUSD and getting that token (very likely to have no value anymore).
+
+It is interesting that the protocol team still reserved a function `updateCollateralRatios` that allows lowering CR.
+
+### Impact
+
+It is impossible to protect the protocol (SP depositors) from an external incidents. Evaluate the severity to Med because it assumes some external exploits.
+
+### Mitigation
+
+Add a new admin function to blacklist a specific collateral.",MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e8558872/attachments/640f3d2828fec738e85589f5/download/Hans-M03.md,0,0,0,0,2023-03-13T15:12:25.794Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Co-Validated,
+640f3d2728fec738e8558874,strategy.activation is not reset on revoking and this prevents adding it back,https://trello.com/c/SwiXWmwd/12-strategyactivation-is-not-reset-on-revoking-and-this-prevents-adding-it-back,"[Ethos-Vault/contracts/ReaperVaultV2.sol#L205](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L205 ""‌"")
+
+[Ethos-Vault/contracts/ReaperVaultV2.sol#L152](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L152 ""‌"")
+
+[Ethos-Vault/contracts/ReaperVaultV2.sol#L493](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L493 ""‌"")
+
+### Summary
+
+In `ReaperVaultV2.sol`, strategies are managed by a mapping `strategies`.
+
+Each strategy is stored as `StrategyParams` and `activation` field is used to store the activation block timestamp.
+
+Looking at the usage, this field is also used to see if a strategy is an enabled one.
+
+But in the function `revokeStrategy()` this field is not removed.
+
+This affects a few places:
+
+- It is possible to re-add a removed strategy back because this field is required to be empty at L151
+- Removed strategies can still call the function `report()`.
+
+### Impact
+
+For now setting the severity to Med but need a double look to see if this can cause loss to the protocol in some way, especially via `report()`
+
+### Mitigation
+
+Add `strategies[_strategy].activated = 0;` in the function `revokeStrategy()`.",MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e8558874/attachments/640f3d2828fec738e85589f7/download/Hans-M04.md,0,0,0,0,2023-03-13T15:12:25.882Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+640f3d2728fec738e855887c,"In `ReaperVaultV2`, we should update `lockedProfit` and `lastReport` before changing `lockedProfitDegradation`.",https://trello.com/c/TFSbHffM/16-in-reapervaultv2-we-should-update-lockedprofit-and-lastreport-before-changing-lockedprofitdegradation,"Ethos-Vault/contracts/ReaperVaultV2.sol#L620
+
+Ethos-Vault/contracts/ReaperVaultV2.sol#L419
+
+## Summary
+
+`lockedProfitDegradation`` is used to calculate the locked profit for vault’s balance.
+
+But it doesn’t update `lastReport` before changing `lockedProfitDegradation`` so already unlocked profit might be locked again with the new setting.
+
+## Impact
+
+The logic of locked profit calculation wouldn’t work as expected as the degradation ratio for past can be changed.
+
+## Mitigation
+
+`lockedProfit` and `lastReport` should be updated before changing the ratio.",MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e855887c/attachments/640f3d2828fec738e85589fd/download/Hans-M05.md,0,0,0,0,2023-03-13T15:13:14.093Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+641a3554c19b6056151a3e0a,The event `Swap` in transfer should go after the external token call,https://trello.com/c/VE7NN6QP/22-the-event-swap-in-transfer-should-go-after-the-external-token-call,"The event \`Swap\` in transfer should go after the external token call
+
+```
+emit Swap(fromToken, toToken, amountIn, amountOut, recipient);
+```
+
+Move this line up",LOW (yellow_light),patrickalphac,,0,,0,0,0,0,2023-03-21T23:09:49.113Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,false,,false,,
+640f3d2728fec738e8558882,`ReaperBaseStrategyv4.harvest()` might revert in an emergency.,https://trello.com/c/drLcey25/19-reaperbasestrategyv4harvest-might-revert-in-an-emergency,"[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L109](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L109 ""smartCard-inline"")
+
+[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L200](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L200 ""smartCard-inline"")",MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e8558882/attachments/640f3d2828fec738e85589ff/download/Hans-M06.md,0,0,0,0,2023-03-13T15:12:26.037Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+640f3d2728fec738e8558884,There should be an option to rescue the underlying token in `ReaperVaultV2.sol`,https://trello.com/c/XT9QN2Vc/20-there-should-be-an-option-to-rescue-the-underlying-token-in-reapervaultv2sol,,MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e8558884/attachments/640f3d2828fec738e8558a01/download/Hans-M07.md,0,0,0,0,2023-03-13T15:12:26.118Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+640f3d2728fec738e8558886,`ReaperVaultV2._withdraw()` will revert if one strategy in `withdrawalQueue` is in the debt.,https://trello.com/c/EbLnejIv/21-reapervaultv2withdraw-will-revert-if-one-strategy-in-withdrawalqueue-is-in-the-debt,,MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e8558886/attachments/640f3d2828fec738e8558a03/download/Hans-M08.md,0,0,0,0,2023-03-13T15:12:26.191Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+640f3d2728fec738e8558888,The vault might charge more underlying tokens from strategies because `ReaperVaultV2.report()` uses `repayment` wrongly.,https://trello.com/c/bWmtl3GH/22-the-vault-might-charge-more-underlying-tokens-from-strategies-because-reapervaultv2report-uses-repayment-wrongly,,MEDIUM (orange),,,1,https://trello.com/1/cards/640f3d2728fec738e8558888/attachments/640f3d2828fec738e8558a05/download/Hans-M09.md,0,0,0,0,2023-03-13T15:12:26.252Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,Self-Validated,
+640f3d2728fec738e8558876,QA Findings,https://trello.com/c/1ErYJkUM/13-qa-findings,"### Core contracts are susceptible to initializer re-entrancy due to OpenZeppelin version advisory
+
+The version of OpenZeppelin in the core package falls within this advisory, so advised to upgrade to avoid accidentally adding a vulnerability if external calls are made [https://github.com/OpenZeppelin/openzeppelin-contracts/security/advisories/GHSA-9c22-pwxw-p6hx](https://github.com/OpenZeppelin/openzeppelin-contracts/security/advisories/GHSA-9c22-pwxw-p6hx ""smartCard-inline"")
+
+### Use emit keyword for events
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L194](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L194 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L201](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L201 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/SortedTroves.sol#L198](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/SortedTroves.sol#L198 ""‌"")
+
+### RedemptionHelper not included in function name/revert string
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L327-L335](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L327-L335 ""‌"")
+
+### Inconsistent use of uint/uint256
+
+Can cause issues when encoding (but all fine currently it seems)
+
+### Could precompute addresses beforehand instead of setAddresses functions
+
+[https://github.com/transmissions11/solmate/issues/207](https://github.com/transmissions11/solmate/issues/207 ""‌"")
+
+### Re-entrancy risk in openTrove
+
+Although unlikely bad collateral will be included [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L231](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L231 ""‌"")
+
+### Use enum for comparisons without casting to uint
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L543](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L543 ""‌"")
+
+### Inconsistent use of `_100pct` / `DECIMAL_PRECISION`
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L650](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L650 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/TroveManager.sol#L1412](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/TroveManager.sol#L1412 ""‌"")
+
+### Typehashes correct but use keccak256 to avoid making mistakes
+
+(evaluated at compile time anyway) [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/LUSDToken.sol#L41-L44](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/LUSDToken.sol#L41-L44 ""‌"")
+
+### `withdrawFromSp` doesn't `_requireNonZeroAmount()` unlike `provideToSP`
+
+… but gains are paid out and snapshots updated without sending LUSD. Perhaps should be consistent between functions though.
+
+### Remove console.log imports
+
+All instances should be removed
+
+### Is lack of initializer access control intentional?
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L62-L67](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L62-L67 ""‌"")
+
+### No rewards swapped in `_harvestCore`
+
+When \`steps\` are not initialized it seems admin has to \`setHarvestSteps\` first, but this may not happen so rewards aren't swapped. [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L114-L125](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L114-L125 ""‌"")
+
+### Use `_disableInitializers()`
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L61](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L61 ""‌"")
+
+### Remove deployer default admin role
+
+Default admin is reserved for most privileged role which should be multisig [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L132](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L132 ""‌"")
+
+### 20BPS erronously set to 20%
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L155](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L155 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L181](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L155 ""‌"")
+
+### Follow CEI
+
+CEI violation. Re-entrancy which could affect locked profit calculations below or chain with burning shares before charging fees in `_withdraw`. Although would require a malicious strategy which massively lowers likelihood and hence severity. [https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L528](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L528 ""smartCard-inline"")
+
+### Gas
+
+could save a call by using \`type(uint256).max\` here as function performs min againt withdrawable amount anyway [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L105](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L105 ""‌"")",QA (green),,,1,https://trello.com/1/cards/640f3d2728fec738e8558876/attachments/640f3d2828fec738e85589f9/download/Hans-QA.md,0,0,0,0,2023-03-13T15:12:26.318Z,640f3d2728fec738e8558818,Report,640f3d2728fec738e855880e,Beanstalk (Wells) - Phase 2,true,,false,,
