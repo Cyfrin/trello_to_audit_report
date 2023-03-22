@@ -29,7 +29,7 @@ pipx install trello_to_audit_report
 
 You can run `trello_to_audit_report -v` to make sure it's installed correctly.
 
-2. Place all your findings in a list on a trello board called `Report`
+2. Place all your findings in a list on a trello board, and have one list called `Report`
 3. [Export your board](https://support.atlassian.com/trello/docs/exporting-data-from-trello/) to a `.csv` file
 4. Run:
 
