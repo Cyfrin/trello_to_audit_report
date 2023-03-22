@@ -3,8 +3,6 @@ import sys
 from .finding_list import FindingList, OUTPUT_FILE_DEFAULT_NAME
 
 from .__version__ import __version__
-from typing import List
-from .finding import Finding
 import logging as log
 
 log.basicConfig(level=log.INFO)

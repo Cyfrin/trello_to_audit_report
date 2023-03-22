@@ -6,7 +6,6 @@ A way to easily generate a markdown file from a trello board.
 
 ## Requirements
 
-## Requirements
 
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
   - You'll know you did it right if you can run `git --version` and you see a response like `git version x.x.x`
@@ -19,15 +18,55 @@ A way to easily generate a markdown file from a trello board.
   - You'll know you've installed it right if you can run:
     - `pipx --version` and see something like `x.x.x.x`
 
-## Quickstart
 
-1. Download and install this package with `pip` or `pipx`
+## Installation
+
+There are a few options with how to install.
+
+### pipx 
+
+We recommend using `pipx` as it installs your package into a virtual environment. 
 
 ```
 pipx install trello_to_audit_report
 ```
 
-You can run `trello_to_audit_report -v` to make sure it's installed correctly.
+Then, verify it's installation: 
+```
+trello_to_audit_report -v
+```
+
+You should get an output like `x.x.x`
+
+### pip
+
+Otherwise, you can use `pip`.
+
+```
+pip install trello_to_audit_report
+```
+
+### From Source
+
+You can install from source.
+
+```
+git clone https://github.com/ChainAccelOrg/trello_to_audit_report
+cd trello_to_audit_report
+pip install . -e
+```
+
+<!-- ### Just run as a script
+
+And finally, if you want to just run it using the `python` command instead of as a cli, you can do the following:
+
+```
+git clone https://github.com/ChainAccelOrg/trello_to_audit_report
+cd trello_to_audit_report
+python3 
+``` -->
+
+## Quickstart
 
 2. Place all your findings in a list on a trello board, and have one list called `Report`
 3. [Export your board](https://support.atlassian.com/trello/docs/exporting-data-from-trello/) to a `.csv` file
