@@ -1,0 +1,423 @@
+Card ID,Card Name,Card URL,Card Description,Labels,Members,Due Date,Attachment Count,Attachment Links,Checklist Item Total Count,Checklist Item Completed Count,Vote Count,Comment Count,Last Activity Date,List ID,List Name,Board ID,Board Name,Archived,Start Date,Due Complete,Status,PoC
+641af04d96b74c82177e1ebb,Info: `updateCollateralRatios` can make no changes and waste gas,https://trello.com/c/WSdumpqv/3-info-updatecollateralratios-can-make-no-changes-and-waste-gas,"[updateCollateralRatios](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L85 ""‌"") has these two requires:
+
+```javascript
+require(_MCR <= config.MCR, ""Can only walk down the MCR"");
+require(_CCR <= config.CCR, ""Can only walk down the CCR"");
+```
+
+However, one could set `_MCR` and `CCR` to be the current values in the config.
+
+## Mitigation
+
+Consider adding to the comments that this is possible. Or, add a require that at least one of the two should be different than what is in the current config.",QA (green),,,0,,0,0,0,0,2023-02-21T15:20:12.738Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,,
+641af04d96b74c82177e1eb9,Info: Use `is` when modifier returns booleans,https://trello.com/c/eHufaOPm/2-info-use-is-when-modifier-returns-booleans,"```
+  modifier checkCollateral(address _collateral) {
+      require(collateralConfig[_collateral].allowed, ""Invalid collateral address"");
+      _;
+  }
+```
+
+The [checkCollateral](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L128 ""‌"") modifier name could be more explicit with what it is “checking” for. For example:
+
+```
+isValidCollateral
+isAllowedCollateral
+requireValidCollateral
+```",QA (green),,,0,,0,0,0,0,2023-02-21T15:20:11.867Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,,
+641af04d96b74c82177e1ec1,No stale price check for chainlink pricing,https://trello.com/c/wOi7q6l6/6-no-stale-price-check-for-chainlink-pricing,"**Note: This should likely be reported to liquity too.**
+
+`_badChainlinkResponse` checks for:
+
+1. Call reverts
+2. Bad roundIds
+3. Bad timestamp
+4. Negative response
+
+But it doesn’t check for a stale price. [Chainlink price feeds](https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd ""‌"") have a update either:
+
+1. Every x minutes (based on the feed heartbeat)
+2. Or every x price deviation (based on the feed deviation threshold)
+
+In the event that a price feed isn’t updated, the project will continue to work with outdated prices, not knowing the prices are stale.
+
+```
+
+    function _badChainlinkResponse(ChainlinkResponse memory _response) internal view returns (bool) {
+        // Check for response call reverted
+        if (!_response.success) {
+            return true;
+        }
+        // Check for an invalid roundId that is 0
+        if (_response.roundId == 0) {
+            return true;
+        }
+        // Check for an invalid timeStamp that is 0, or in the future
+        if (_response.timestamp == 0 || _response.timestamp > block.timestamp) {
+            return true;
+        }
+        // Check for non-positive price
+        if (_response.answer <= 0) {
+            return true;
+        }
+        // No check on if the timestamp has responded in the last X hours
+        return false;
+    }
+```
+
+‌
+
+## Mitigation
+
+Add a stale check to `_badChainlinkResponse` with an `onlyOwner` parameter that can be modified.
+
+‌
+
+Something like the following
+
+```javascript
+uint256 private chainlinkOracleTimeout = 14400; // 4 hours in seconds might be a good starting point
+// ideally you'd have a per-feed timeout threshold - since different feeds have different thresholds
+
+uint256 lastUpdated = priceAggregator[_collateral].lastUpdate()
+uint256 secondsSince = block.timestamp - lastUpdated;
+if (secondsSince > chainlinkOracleTimeout) revert StalePrice();
+```",MEDIUM (orange),,,0,,0,0,0,0,2023-02-23T01:38:25.119Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,,
+641af04d96b74c82177e1ec3,GAS: getCollateral doesn’t need _requireValidCollateralAddress,https://trello.com/c/aYIW2HOp/7-gas-getcollateral-doesnt-need-requirevalidcollateraladdress,"Since getCollateral is a view function and isn’t modifying state, it doesn’t need a require.",QA (green),,,0,,0,0,0,0,2023-02-23T02:12:37.193Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,,
+641af04d96b74c82177e1ec5,ActivePool rebalance should be done after collateral amount change in the function sendCollateral,https://trello.com/c/GtJS3JcV/8-activepool-rebalance-should-be-done-after-collateral-amount-change-in-the-function-sendcollateral,"[ActivePool.sol#L175](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L175 ""‌"")
+
+Not sure on the severity yet but this part is suspicious.
+
+Will dig deeper later.",TBD (black_light),,,0,,0,0,0,0,2023-02-24T14:44:21.845Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,Suspicious,
+641af04d96b74c82177e1ed9,Vault depositor frontrunning & lack of zero shares check,https://trello.com/c/JnJLq0ek/18-vault-depositor-frontrunning-lack-of-zero-shares-check,"[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L331C26-L336](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L331C26-L336 ""smartCard-inline"")",LOW (yellow_light),,,0,,0,0,0,0,2023-03-07T09:57:19.940Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,Suspicious,
+641af04d96b74c82177e1ebd,QA Findings,https://trello.com/c/wPHKFKPs/4-qa-findings,"### Wrong comments
+
+- [BorrowerOperations.sol#L660](https://github.com/ChainAccelOrg/2023-02-ethos/blob/4c57e1eddd12933ca2b9df5aee4ef90eba90154f/Ethos-Core/contracts/BorrowerOperations.sol#L660 ""‌"") : <collateral ratio> → <nominal ..>
+- [LiquityBase.sol#L49](https://github.com/ChainAccelOrg/2023-02-ethos/blob/49b81ba98f3e121bc0bd2f14b97e433ef52e9468/Ethos-Core/contracts/Dependencies/LiquityBase.sol#L49 ""‌"") : <ETH> → <collateral>
+
+### Misleading variable names
+
+- [TroveManager.sol#L715](https://github.com/ChainAccelOrg/2023-02-ethos/blob/49b81ba98f3e121bc0bd2f14b97e433ef52e9468/Ethos-Core/contracts/TroveManager.sol#L715 ""‌"") : `_troveArray` → `_troveOwnerArray`",QA (green),,,0,,0,0,0,0,2023-03-07T10:42:52.145Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,,
+641af04d96b74c82177e1eb7,QA Findings,https://trello.com/c/IWDGaNth/1-qa-findings,"## Gas Save decimals using one line instead of 2
+
+[This line](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L63 ""‌"")
+
+```
+uint256 decimals = IERC20(collateral).decimals(); // @follow-up if decimals is not specified?
+config.decimals = decimals;
+```
+
+Could just be:
+
+```
+config.decimals = IERC20(collateral).decimals();
+```
+
+‌
+
+## Info: Use more explicit modifier names
+
+```
+  modifier checkCollateral(address _collateral) {
+      require(collateralConfig[_collateral].allowed, ""Invalid collateral address"");
+      _;
+  }
+```
+
+The [checkCollateral](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L128 ""‌"") modifier name could be more explicit with what it is “checking” for. For example:
+
+```
+isValidCollateral
+isAllowedCollateral
+requireValidCollateral
+```
+
+‌
+
+## Info: `UpdateCollateralRatios` can make no changes but still waste gas
+
+[updateCollateralRatios](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/CollateralConfig.sol#L85 ""‌"") has these two requires:
+
+```javascript
+require(_MCR <= config.MCR, ""Can only walk down the MCR"");
+require(_CCR <= config.CCR, ""Can only walk down the CCR"");
+```
+
+However, one could set `_MCR` and `CCR` to be the current values in the config.
+
+## Mitigation
+
+Consider adding to the comments that this is possible. Or, add a require that at least one of the two should be different than what is in the current config.
+
+## Gas: Balance and Allowance is checked on transfer
+
+[On this line](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L174 ""‌"")
+
+```
+_requireSufficientCollateralBalanceAndAllowance(msg.sender, _collateral, _collAmount);
+```
+
+You could make this simplier by checking the success of the transfer of the tokens.
+
+‌
+
+## Gas: Check contract earlier in function
+
+```
+checkContract(priceAggregatorAddress);
+```
+
+[This line](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/PriceFeed.sol#L118 ""‌"") can be checked earlier in the code, and therefore revert quicker saving users who call this function with a bad `priceAggregatorAddress` to waste less gas.
+
+‌
+
+## `console.sol` should be removed
+
+`console.sol` is a debugging contract, remove from main code.
+
+
+
+##",QA (green),,,0,,0,0,0,0,2023-03-07T10:42:46.782Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,,
+641af04d96b74c82177e1ed1,Double entrypoint token can break vault if `inCaseTokensGetStuck` called with legacy address,https://trello.com/c/avn3sqLz/14-double-entrypoint-token-can-break-vault-if-incasetokensgetstuck-called-with-legacy-address,"`ReaperVaultV2::inCaseTokensGetStuck` can be called by an admin to withdraw tokens which are mistakenly sent to the vault. A double entrypoint token messes this up to cause complete withdrawal, breaking the vault.
+
+This isn't high severity as only admin can call this function; however, it certainly wouldn't be ideal as collaterals are immutable and USDT being upgradeable/high quality/large market cap collateral makes it a good candidate for this vulnerability.",MEDIUM (orange),,,0,,0,0,0,0,2023-03-07T11:00:39.489Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,true
+641af04d96b74c82177e1ed7,Inconsistent vault behaviour,https://trello.com/c/FJtjR2K2/17-inconsistent-vault-behaviour,"If `freeFunds == 0` then behaviour differs from `ReaperVault4626::convertToShares` [https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L326-L335](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L326-L335 ""smartCard-inline"").
+
+‌
+
+Not sure if this has any other implications, needs discussion.",LOW (yellow_light),,,0,,0,0,0,0,2023-03-07T10:51:21.586Z,641af04d96b74c82177e1e6e,Archive,641af04d96b74c82177e1e67,Example-Board,false,,false,Need Discussion,
+641af04d96b74c82177e1ec7,ActivePool._rebalance() does not take into account the case when the vault's strategy gets loss,https://trello.com/c/ZuSC06dO/9-activepoolrebalance-does-not-take-into-account-the-case-when-the-vaults-strategy-gets-loss,"[Ethos-Core/contracts/ActivePool.sol#L251](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L251 ""‌"")
+
+[Ethos-Core/contracts/ActivePool.sol#L282](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L282 ""‌"")
+
+[Ethos-Core/contracts/ActivePool.sol#L288](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L288 ""‌"")
+
+### Summary
+
+The protocol uses `ReaperVaultERC4626` to manage the collateral assets and farm profit. The vaults are connected to whitelisted strategies.
+
+But it is not guaranteed that the strategies earn profit all the time.
+
+On the other hand, in several places of `ActivePool._rebalance()`, the protocol assumes that it can get more than deposits all the time.
+
+For example, the protocol stores the deposit to the vault as `yieldingAmount` and use that to calculate the profit saying `more precisely`. But if the strategy incurs loss, the actual profit will be less than the calculated amount and it leads to the loss of pool.
+
+Another example is at L282 where the protocol withdraws specifying the collateral amount to receive but it will revert at the end if the strategy lost.
+
+Another example is at L251, where the protocol calculates the profit by subtracting the stored `yieldingAmount` from the `sharesToAssets`. This will revert as well if the strategy lost.
+
+### Impact
+
+The `_rebalance()` will revert almost all the time due to the third example. Because `_rebalance()` is called on important occasions, this leads to **insolvency of the protocol**.
+
+### Mitigation
+
+Do not assume `sharesToAssets>yieldingAmount` at all places mentioned and handle appropriately.
+
+$a/b$",HIGH (red_dark),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ec7/attachments/641af04e96b74c82177e20d8/download/Hans-H01.md,0,0,0,0,2023-03-22T12:10:54.542Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1ed3,Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.,https://trello.com/c/I5aIjN3X/15-users-would-lose-some-shares-during-withdrawal-in-reapervaultv2withdraw,"[Ethos-Vault/contracts/ReaperVaultV2.sol#L401](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L401 ""‌"")
+
+`https://github.com/yearn/yearn-vaults/blob/master/contracts/Vault.vy#L1151`
+
+## Summary
+
+In `ReaperVaultV2._withdraw()` it shouldn’t burn 100% of shares if vault balance is less than `value`.
+
+It should recalculate the share like the yearn vault.
+
+```
+        if value > vault_balance:
+            value = vault_balance
+            # NOTE: Burn # of shares that corresponds to what Vault has on-hand,
+            #       including the losses that were incurred above during withdrawals
+            shares = self._sharesForAmount(value + totalLoss)
+```
+
+‌
+
+## Impact
+
+`ReaperVaultV2._withdraw()` burns 100% of shares even if the vault balance is less than the required underlying amount.
+
+As a result, users would lose some shares during withdrawal.
+
+## Mitigation
+
+It should reduce shares to burn according to the final amount.",HIGH (red_dark),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ed3/attachments/641af04e96b74c82177e20e2/download/Hans-H02.md,0,0,0,0,2023-03-22T12:10:54.564Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1ec9,"""Dust"" collaterals/shares are not cleared in ActivePool._rebalance()",https://trello.com/c/49MGZSDk/10-dust-collaterals-shares-are-not-cleared-in-activepoolrebalance,"[Ethos-Core/contracts/ActivePool.sol#L252](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L252 ""‌"")
+
+[Ethos-Core/contracts/ActivePool.sol#L267](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L267 ""‌"")
+
+### Summary
+
+The protocol uses `yieldClaimThreshold` to prevent unnecessary transfer of dust collateral profit (maybe to save gas?). And if `_amountLeavingPool==collAmount[_collateral]`, i.e. for the “last” withdrawal from the vault, the profit under the threshold is not claimed while the protocol considers it does not have any collaterals left in the vault.
+
+### Impact
+
+The unclaimed “dust” profit will be locked in the vault. Because the affected amount will be not substantial and it will occur only for edge cases, evaluate the severity to Med.
+
+### Mitigation
+
+At L266, check if `vars.finalBalance==0` and add the profit to the target withdraw amount (or redeem the whole owned shares). The redeemed profit will can be distributed by the following lines.",MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ec9/attachments/641af04e96b74c82177e20da/download/Hans-M01.md,0,0,0,0,2023-03-22T12:10:54.501Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1ebf,Some tokens do not allow changing allowance from non-zero to non-zero,https://trello.com/c/OOuF4eQO/5-some-tokens-do-not-allow-changing-allowance-from-non-zero-to-non-zero,"### Code
+
+[SafeERC20.sol#L48](https://github.com/ChainAccelOrg/2023-02-ethos/blob/49b81ba98f3e121bc0bd2f14b97e433ef52e9468/Ethos-Core/contracts/Dependencies/SafeERC20.sol#L48 ""‌"")
+
+[ActivePool.sol#L180](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L180 ""‌"")
+
+### Summary
+
+Some tokens (like USDT) do not work when changing the allowance from an existing non-zero allowance value. They must first be approved by zero and then the actual allowance must be approved.
+
+### Ref
+
+[https://github.com/code-423n4/2022-12-tigris-findings/issues/104](https://github.com/code-423n4/2022-12-tigris-findings/issues/104 ""smartCard-inline"")
+
+[https://github.com/d-xo/weird-erc20#approval-race-protections](https://github.com/d-xo/weird-erc20#approval-race-protections ""smartCard-inline"")",MEDIUM (orange),,,2,"https://trello.com/1/cards/641af04d96b74c82177e1ebf/attachments/641af04e96b74c82177e20cd/download/screenshot_15.png, https://trello.com/1/cards/641af04d96b74c82177e1ebf/attachments/641af04e96b74c82177e20d6/download/Hans-M02.md",0,0,0,0,2023-03-22T12:10:54.805Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Co-Validated,
+641af04d96b74c82177e1ecb,Lack of blacklisting collateral,https://trello.com/c/SprHnrjn/11-lack-of-blacklisting-collateral,"[Ethos-Core/contracts/CollateralConfig.sol#L128](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/CollateralConfig.sol#L128 ""‌"")
+
+[Ethos-Core/contracts/CollateralConfig.sol#L106](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/CollateralConfig.sol#L106 ""‌"")
+
+### Summary
+
+The protocol is designed to be able to support multiple ERC20 tokens.
+
+All the important interactions are checked to be for _allowed_ collateral tokens.
+
+The _allowed_ collaterals are set on the initialization of `CollateralConfig`.
+
+But there is no way to `remove` or `blacklist` an existing collateral token.
+
+While I guess the protocol team is aware of this, I believe it’s worth flagging it again because this is very dangerous. Imagine an allowed collateral is exploited in some way. It might lead to massive liquidation of troves and StabilityPool depositors will end up losing LUSD and getting that token (very likely to have no value anymore).
+
+It is interesting that the protocol team still reserved a function `updateCollateralRatios` that allows lowering CR.
+
+### Impact
+
+It is impossible to protect the protocol (SP depositors) from an external incidents. Evaluate the severity to Med because it assumes some external exploits.
+
+### Mitigation
+
+Add a new admin function to blacklist a specific collateral.",MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ecb/attachments/641af04e96b74c82177e20dc/download/Hans-M03.md,0,0,0,0,2023-03-22T12:10:54.514Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Co-Validated,
+641af04d96b74c82177e1ecd,strategy.activation is not reset on revoking and this prevents adding it back,https://trello.com/c/2Gq8Otda/12-strategyactivation-is-not-reset-on-revoking-and-this-prevents-adding-it-back,"[Ethos-Vault/contracts/ReaperVaultV2.sol#L205](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L205 ""‌"")
+
+[Ethos-Vault/contracts/ReaperVaultV2.sol#L152](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L152 ""‌"")
+
+[Ethos-Vault/contracts/ReaperVaultV2.sol#L493](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L493 ""‌"")
+
+### Summary
+
+In `ReaperVaultV2.sol`, strategies are managed by a mapping `strategies`.
+
+Each strategy is stored as `StrategyParams` and `activation` field is used to store the activation block timestamp.
+
+Looking at the usage, this field is also used to see if a strategy is an enabled one.
+
+But in the function `revokeStrategy()` this field is not removed.
+
+This affects a few places:
+
+- It is possible to re-add a removed strategy back because this field is required to be empty at L151
+- Removed strategies can still call the function `report()`.
+
+### Impact
+
+For now setting the severity to Med but need a double look to see if this can cause loss to the protocol in some way, especially via `report()`
+
+### Mitigation
+
+Add `strategies[_strategy].activated = 0;` in the function `revokeStrategy()`.",MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ecd/attachments/641af04e96b74c82177e20de/download/Hans-M04.md,0,0,0,0,2023-03-22T12:10:54.523Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1ed5,"In `ReaperVaultV2`, we should update `lockedProfit` and `lastReport` before changing `lockedProfitDegradation`.",https://trello.com/c/Gp7G4gfF/16-in-reapervaultv2-we-should-update-lockedprofit-and-lastreport-before-changing-lockedprofitdegradation,"Ethos-Vault/contracts/ReaperVaultV2.sol#L620
+
+Ethos-Vault/contracts/ReaperVaultV2.sol#L419
+
+## Summary
+
+`lockedProfitDegradation`` is used to calculate the locked profit for vault’s balance.
+
+But it doesn’t update `lastReport` before changing `lockedProfitDegradation`` so already unlocked profit might be locked again with the new setting.
+
+## Impact
+
+The logic of locked profit calculation wouldn’t work as expected as the degradation ratio for past can be changed.
+
+## Mitigation
+
+`lockedProfit` and `lastReport` should be updated before changing the ratio.",MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ed5/attachments/641af04e96b74c82177e20e4/download/Hans-M05.md,0,0,0,0,2023-03-22T12:10:54.536Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1edb,`ReaperBaseStrategyv4.harvest()` might revert in an emergency.,https://trello.com/c/vxP44r6v/19-reaperbasestrategyv4harvest-might-revert-in-an-emergency,"[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L109](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L109 ""smartCard-inline"")
+
+[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L200](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L200 ""smartCard-inline"")",MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1edb/attachments/641af04e96b74c82177e20e6/download/Hans-M06.md,0,0,0,0,2023-03-22T12:10:54.545Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1edd,There should be an option to rescue the underlying token in `ReaperVaultV2.sol`,https://trello.com/c/RL01tBvB/20-there-should-be-an-option-to-rescue-the-underlying-token-in-reapervaultv2sol,,MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1edd/attachments/641af04e96b74c82177e20e8/download/Hans-M07.md,0,0,0,0,2023-03-22T12:10:54.556Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1edf,`ReaperVaultV2._withdraw()` will revert if one strategy in `withdrawalQueue` is in the debt.,https://trello.com/c/1KJkGGEC/21-reapervaultv2withdraw-will-revert-if-one-strategy-in-withdrawalqueue-is-in-the-debt,,MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1edf/attachments/641af04e96b74c82177e20ea/download/Hans-M08.md,0,0,0,0,2023-03-22T12:10:54.554Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1ee1,The vault might charge more underlying tokens from strategies because `ReaperVaultV2.report()` uses `repayment` wrongly.,https://trello.com/c/hCk2C0CT/22-the-vault-might-charge-more-underlying-tokens-from-strategies-because-reapervaultv2report-uses-repayment-wrongly,,MEDIUM (orange),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ee1/attachments/641af04e96b74c82177e20ec/download/Hans-M09.md,0,0,0,0,2023-03-22T12:10:54.517Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,Self-Validated,
+641af04d96b74c82177e1ecf,QA Findings,https://trello.com/c/N0Hux3bD/13-qa-findings,"### Core contracts are susceptible to initializer re-entrancy due to OpenZeppelin version advisory
+
+The version of OpenZeppelin in the core package falls within this advisory, so advised to upgrade to avoid accidentally adding a vulnerability if external calls are made [https://github.com/OpenZeppelin/openzeppelin-contracts/security/advisories/GHSA-9c22-pwxw-p6hx](https://github.com/OpenZeppelin/openzeppelin-contracts/security/advisories/GHSA-9c22-pwxw-p6hx ""smartCard-inline"")
+
+### Use emit keyword for events
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L194](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L194 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L201](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L201 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/SortedTroves.sol#L198](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/SortedTroves.sol#L198 ""‌"")
+
+### RedemptionHelper not included in function name/revert string
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L327-L335](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L327-L335 ""‌"")
+
+### Inconsistent use of uint/uint256
+
+Can cause issues when encoding (but all fine currently it seems)
+
+### Could precompute addresses beforehand instead of setAddresses functions
+
+[https://github.com/transmissions11/solmate/issues/207](https://github.com/transmissions11/solmate/issues/207 ""‌"")
+
+### Re-entrancy risk in openTrove
+
+Although unlikely bad collateral will be included [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L231](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L231 ""‌"")
+
+### Use enum for comparisons without casting to uint
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L543](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L543 ""‌"")
+
+### Inconsistent use of `_100pct` / `DECIMAL_PRECISION`
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L650](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L650 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/TroveManager.sol#L1412](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/TroveManager.sol#L1412 ""‌"")
+
+### Typehashes correct but use keccak256 to avoid making mistakes
+
+(evaluated at compile time anyway) [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/LUSDToken.sol#L41-L44](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/LUSDToken.sol#L41-L44 ""‌"")
+
+### `withdrawFromSp` doesn't `_requireNonZeroAmount()` unlike `provideToSP`
+
+… but gains are paid out and snapshots updated without sending LUSD. Perhaps should be consistent between functions though.
+
+### Remove console.log imports
+
+All instances should be removed
+
+### Is lack of initializer access control intentional?
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L62-L67](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L62-L67 ""‌"")
+
+### No rewards swapped in `_harvestCore`
+
+When \`steps\` are not initialized it seems admin has to \`setHarvestSteps\` first, but this may not happen so rewards aren't swapped. [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L114-L125](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L114-L125 ""‌"")
+
+### Use `_disableInitializers()`
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L61](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L61 ""‌"")
+
+### Remove deployer default admin role
+
+Default admin is reserved for most privileged role which should be multisig [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L132](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L132 ""‌"")
+
+### 20BPS erronously set to 20%
+
+[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L155](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L155 ""‌""); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L181](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L155 ""‌"")
+
+### Follow CEI
+
+CEI violation. Re-entrancy which could affect locked profit calculations below or chain with burning shares before charging fees in `_withdraw`. Although would require a malicious strategy which massively lowers likelihood and hence severity. [https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L528](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L528 ""smartCard-inline"")
+
+### Gas
+
+could save a call by using \`type(uint256).max\` here as function performs min againt withdrawable amount anyway [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L105](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L105 ""‌"")",QA (green),,,1,https://trello.com/1/cards/641af04d96b74c82177e1ecf/attachments/641af04e96b74c82177e20e0/download/Hans-QA.md,0,0,0,0,2023-03-22T12:10:54.605Z,641af04d96b74c82177e1e71,Report,641af04d96b74c82177e1e67,Example-Board,false,,false,,

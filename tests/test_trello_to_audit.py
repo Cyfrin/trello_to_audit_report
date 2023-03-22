@@ -41,3 +41,4 @@ def test_generate_markdown_findings_list_from_csv(findings_list):
 def test_create_summary_report(findings_list):
     findings_list.set_findings_list_from_csv(FULL_CSV_FILE_NAME)
     summary_report = findings_list.create_summary_report()
+    # TODO: Add the assert lol

@@ -1,3 +1,7 @@
+import re
+import requests
+
+
 class Finding:
     def __init__(
         self,
@@ -26,5 +30,9 @@ class Finding:
 
     def get_summary_title_hyperlink(self) -> str:
         """Create a hyperlink from a title"""
-        summary_title = self.get_summary_title()
-        return summary_title.replace(" ", "-").replace("[", "").replace("]", "").lower()
+        summary_title = "#" + self.get_summary_title()
+        summary_title = summary_title.lower()
+        summary_title = re.sub(r"[\[\]\(\)]", "", summary_title)
+        summary_title = re.sub(r"\s+", "-", summary_title)
+        summary_title = re.sub(r"[^a-z0-9-_]", "", summary_title)
+        return f"#{summary_title}"
