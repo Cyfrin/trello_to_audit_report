@@ -272,6 +272,8 @@ class FindingList:
         for attachment in attachments_from_card_data:
             if attachment["name"] == CARD_REPORT_NAME:
                 return attachment["id"]
+        if len(attachments_from_card_data) > 0:
+            return attachments_from_card_data[0]["id"]
         return None
 
     def download_attachment(

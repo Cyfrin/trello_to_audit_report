@@ -42,6 +42,7 @@ setup(
         "urllib3",
         "python-dotenv",
         "pypandoc",
+        "pytest",
     ],
     packages=[about["__title__"]],
     python_requires=">=3.7, <4",

@@ -1,4 +1,3 @@
-from pathlib import Path
 from trello_to_audit_report.finding_list import FindingList
 import pytest
 
