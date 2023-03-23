@@ -1,0 +1,42 @@
+[
+    {
+        "id": "641af04d96b74c82177e1e6e",
+        "name": "Archive",
+        "closed": false,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "pos": 8192,
+        "subscribed": false,
+        "softLimit": null,
+        "status": null
+    },
+    {
+        "id": "641af04d96b74c82177e1e6f",
+        "name": "Findings",
+        "closed": false,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "pos": 12288,
+        "subscribed": false,
+        "softLimit": null,
+        "status": null
+    },
+    {
+        "id": "641af04d96b74c82177e1e70",
+        "name": "Peer-Reviewed",
+        "closed": false,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "pos": 16384,
+        "subscribed": false,
+        "softLimit": null,
+        "status": null
+    },
+    {
+        "id": "641af04d96b74c82177e1e71",
+        "name": "Report",
+        "closed": false,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "pos": 245760,
+        "subscribed": false,
+        "softLimit": null,
+        "status": null
+    }
+]

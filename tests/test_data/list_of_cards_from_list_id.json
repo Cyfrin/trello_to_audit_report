@@ -1,0 +1,866 @@
+[
+    {
+        "id": "641af04d96b74c82177e1ec7",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": false,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T13:49:31.180Z",
+        "desc": "",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 9,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee8",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "HIGH",
+                "color": "red_dark"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee8"
+        ],
+        "manualCoverAttachment": false,
+        "name": "ActivePool._rebalance() does not take into account the case when the vault's strategy gets loss",
+        "pos": 196607,
+        "shortLink": "ZuSC06dO",
+        "shortUrl": "https://trello.com/c/ZuSC06dO",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/ZuSC06dO/9-activepoolrebalance-does-not-take-into-account-the-case-when-the-vaults-strategy-gets-loss",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ed3",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.564Z",
+        "desc": "[Ethos-Vault/contracts/ReaperVaultV2.sol#L401](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L401 \"‌\")\n\n`https://github.com/yearn/yearn-vaults/blob/master/contracts/Vault.vy#L1151`\n\n## Summary\n\nIn `ReaperVaultV2._withdraw()` it shouldn’t burn 100% of shares if vault balance is less than `value`.\n\nIt should recalculate the share like the yearn vault.\n\n```\n        if value > vault_balance:\n            value = vault_balance\n            # NOTE: Burn # of shares that corresponds to what Vault has on-hand,\n            #       including the losses that were incurred above during withdrawals\n            shares = self._sharesForAmount(value + totalLoss)\n```\n\n‌\n\n## Impact\n\n`ReaperVaultV2._withdraw()` burns 100% of shares even if the vault balance is less than the required underlying amount.\n\nAs a result, users would lose some shares during withdrawal.\n\n## Mitigation\n\nIt should reduce shares to burn according to the final amount.",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 15,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee8",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "HIGH",
+                "color": "red_dark"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee8"
+        ],
+        "manualCoverAttachment": false,
+        "name": "Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.",
+        "pos": 229375,
+        "shortLink": "I5aIjN3X",
+        "shortUrl": "https://trello.com/c/I5aIjN3X",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/I5aIjN3X/15-users-would-lose-some-shares-during-withdrawal-in-reapervaultv2withdraw",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ec9",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.501Z",
+        "desc": "[Ethos-Core/contracts/ActivePool.sol#L252](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L252 \"‌\")\n\n[Ethos-Core/contracts/ActivePool.sol#L267](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L267 \"‌\")\n\n### Summary\n\nThe protocol uses `yieldClaimThreshold` to prevent unnecessary transfer of dust collateral profit (maybe to save gas?). And if `_amountLeavingPool==collAmount[_collateral]`, i.e. for the “last” withdrawal from the vault, the profit under the threshold is not claimed while the protocol considers it does not have any collaterals left in the vault.\n\n### Impact\n\nThe unclaimed “dust” profit will be locked in the vault. Because the affected amount will be not substantial and it will occur only for edge cases, evaluate the severity to Med.\n\n### Mitigation\n\nAt L266, check if `vars.finalBalance==0` and add the profit to the target withdraw amount (or redeem the whole owned shares). The redeemed profit will can be distributed by the following lines.",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 10,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "\"Dust\" collaterals/shares are not cleared in ActivePool._rebalance()",
+        "pos": 262143,
+        "shortLink": "49MGZSDk",
+        "shortUrl": "https://trello.com/c/49MGZSDk",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/49MGZSDk/10-dust-collaterals-shares-are-not-cleared-in-activepoolrebalance",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ebf",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 2,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.805Z",
+        "desc": "### Code\n\n[SafeERC20.sol#L48](https://github.com/ChainAccelOrg/2023-02-ethos/blob/49b81ba98f3e121bc0bd2f14b97e433ef52e9468/Ethos-Core/contracts/Dependencies/SafeERC20.sol#L48 \"‌\")\n\n[ActivePool.sol#L180](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/ActivePool.sol#L180 \"‌\")\n\n### Summary\n\nSome tokens (like USDT) do not work when changing the allowance from an existing non-zero allowance value. They must first be approved by zero and then the actual allowance must be approved.\n\n### Ref\n\n[https://github.com/code-423n4/2022-12-tigris-findings/issues/104](https://github.com/code-423n4/2022-12-tigris-findings/issues/104 \"smartCard-inline\")\n\n[https://github.com/d-xo/weird-erc20#approval-race-protections](https://github.com/d-xo/weird-erc20#approval-race-protections \"smartCard-inline\")",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 5,
+        "idAttachmentCover": "641af04e96b74c82177e20cd",
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "Some tokens do not allow changing allowance from non-zero to non-zero",
+        "pos": 327679,
+        "shortLink": "OOuF4eQO",
+        "shortUrl": "https://trello.com/c/OOuF4eQO",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/OOuF4eQO/5-some-tokens-do-not-allow-changing-allowance-from-non-zero-to-non-zero",
+        "cover": {
+            "idAttachment": "641af04e96b74c82177e20cd",
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ecb",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.514Z",
+        "desc": "[Ethos-Core/contracts/CollateralConfig.sol#L128](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/CollateralConfig.sol#L128 \"‌\")\n\n[Ethos-Core/contracts/CollateralConfig.sol#L106](https://github.com/ChainAccelOrg/2023-02-ethos/blob/98f7ccc3d7e84a825cca4f5abb04e2ef35562ce5/Ethos-Core/contracts/CollateralConfig.sol#L106 \"‌\")\n\n### Summary\n\nThe protocol is designed to be able to support multiple ERC20 tokens.\n\nAll the important interactions are checked to be for _allowed_ collateral tokens.\n\nThe _allowed_ collaterals are set on the initialization of `CollateralConfig`.\n\nBut there is no way to `remove` or `blacklist` an existing collateral token.\n\nWhile I guess the protocol team is aware of this, I believe it’s worth flagging it again because this is very dangerous. Imagine an allowed collateral is exploited in some way. It might lead to massive liquidation of troves and StabilityPool depositors will end up losing LUSD and getting that token (very likely to have no value anymore).\n\nIt is interesting that the protocol team still reserved a function `updateCollateralRatios` that allows lowering CR.\n\n### Impact\n\nIt is impossible to protect the protocol (SP depositors) from an external incidents. Evaluate the severity to Med because it assumes some external exploits.\n\n### Mitigation\n\nAdd a new admin function to blacklist a specific collateral.",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 11,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "Lack of blacklisting collateral",
+        "pos": 393215,
+        "shortLink": "SprHnrjn",
+        "shortUrl": "https://trello.com/c/SprHnrjn",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/SprHnrjn/11-lack-of-blacklisting-collateral",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ecd",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.523Z",
+        "desc": "[Ethos-Vault/contracts/ReaperVaultV2.sol#L205](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L205 \"‌\")\n\n[Ethos-Vault/contracts/ReaperVaultV2.sol#L152](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L152 \"‌\")\n\n[Ethos-Vault/contracts/ReaperVaultV2.sol#L493](https://github.com/ChainAccelOrg/2023-02-ethos/blob/1849f544e3fa05314da08a17e4d0dbaa2e3df913/Ethos-Vault/contracts/ReaperVaultV2.sol#L493 \"‌\")\n\n### Summary\n\nIn `ReaperVaultV2.sol`, strategies are managed by a mapping `strategies`.\n\nEach strategy is stored as `StrategyParams` and `activation` field is used to store the activation block timestamp.\n\nLooking at the usage, this field is also used to see if a strategy is an enabled one.\n\nBut in the function `revokeStrategy()` this field is not removed.\n\nThis affects a few places:\n\n- It is possible to re-add a removed strategy back because this field is required to be empty at L151\n- Removed strategies can still call the function `report()`.\n\n### Impact\n\nFor now setting the severity to Med but need a double look to see if this can cause loss to the protocol in some way, especially via `report()`\n\n### Mitigation\n\nAdd `strategies[_strategy].activated = 0;` in the function `revokeStrategy()`.",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 12,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "strategy.activation is not reset on revoking and this prevents adding it back",
+        "pos": 458751,
+        "shortLink": "2Gq8Otda",
+        "shortUrl": "https://trello.com/c/2Gq8Otda",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/2Gq8Otda/12-strategyactivation-is-not-reset-on-revoking-and-this-prevents-adding-it-back",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ed5",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.536Z",
+        "desc": "Ethos-Vault/contracts/ReaperVaultV2.sol#L620\n\nEthos-Vault/contracts/ReaperVaultV2.sol#L419\n\n## Summary\n\n`lockedProfitDegradation`` is used to calculate the locked profit for vault’s balance.\n\nBut it doesn’t update `lastReport` before changing `lockedProfitDegradation`` so already unlocked profit might be locked again with the new setting.\n\n## Impact\n\nThe logic of locked profit calculation wouldn’t work as expected as the degradation ratio for past can be changed.\n\n## Mitigation\n\n`lockedProfit` and `lastReport` should be updated before changing the ratio.",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 16,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "In `ReaperVaultV2`, we should update `lockedProfit` and `lastReport` before changing `lockedProfitDegradation`.",
+        "pos": 589823,
+        "shortLink": "Gp7G4gfF",
+        "shortUrl": "https://trello.com/c/Gp7G4gfF",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/Gp7G4gfF/16-in-reapervaultv2-we-should-update-lockedprofit-and-lastreport-before-changing-lockedprofitdegradation",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1edb",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.545Z",
+        "desc": "[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L109](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L109 \"smartCard-inline\")\n\n[https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L200](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L200 \"smartCard-inline\")",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 19,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "`ReaperBaseStrategyv4.harvest()` might revert in an emergency.",
+        "pos": 983039,
+        "shortLink": "vxP44r6v",
+        "shortUrl": "https://trello.com/c/vxP44r6v",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/vxP44r6v/19-reaperbasestrategyv4harvest-might-revert-in-an-emergency",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1edd",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": false,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.556Z",
+        "desc": "",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 20,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "There should be an option to rescue the underlying token in `ReaperVaultV2.sol`",
+        "pos": 1048575,
+        "shortLink": "RL01tBvB",
+        "shortUrl": "https://trello.com/c/RL01tBvB",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/RL01tBvB/20-there-should-be-an-option-to-rescue-the-underlying-token-in-reapervaultv2sol",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1edf",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": false,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.554Z",
+        "desc": "",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 21,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "`ReaperVaultV2._withdraw()` will revert if one strategy in `withdrawalQueue` is in the debt.",
+        "pos": 1114111,
+        "shortLink": "1KJkGGEC",
+        "shortUrl": "https://trello.com/c/1KJkGGEC",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/1KJkGGEC/21-reapervaultv2withdraw-will-revert-if-one-strategy-in-withdrawalqueue-is-in-the-debt",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ee1",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": false,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.517Z",
+        "desc": "",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 22,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ee5",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "MEDIUM",
+                "color": "orange"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ee5"
+        ],
+        "manualCoverAttachment": false,
+        "name": "The vault might charge more underlying tokens from strategies because `ReaperVaultV2.report()` uses `repayment` wrongly.",
+        "pos": 1179647,
+        "shortLink": "hCk2C0CT",
+        "shortUrl": "https://trello.com/c/hCk2C0CT",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/hCk2C0CT/22-the-vault-might-charge-more-underlying-tokens-from-strategies-because-reapervaultv2report-uses-repayment-wrongly",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    },
+    {
+        "id": "641af04d96b74c82177e1ecf",
+        "badges": {
+            "attachmentsByType": {
+                "trello": {
+                    "board": 0,
+                    "card": 0
+                }
+            },
+            "location": false,
+            "votes": 0,
+            "viewingMemberVoted": false,
+            "subscribed": false,
+            "fogbugz": "",
+            "checkItems": 0,
+            "checkItemsChecked": 0,
+            "checkItemsEarliestDue": null,
+            "comments": 0,
+            "attachments": 1,
+            "description": true,
+            "due": null,
+            "dueComplete": false,
+            "start": null
+        },
+        "checkItemStates": null,
+        "closed": false,
+        "dueComplete": false,
+        "dateLastActivity": "2023-03-22T12:10:54.605Z",
+        "desc": "### Core contracts are susceptible to initializer re-entrancy due to OpenZeppelin version advisory\n\nThe version of OpenZeppelin in the core package falls within this advisory, so advised to upgrade to avoid accidentally adding a vulnerability if external calls are made [https://github.com/OpenZeppelin/openzeppelin-contracts/security/advisories/GHSA-9c22-pwxw-p6hx](https://github.com/OpenZeppelin/openzeppelin-contracts/security/advisories/GHSA-9c22-pwxw-p6hx \"smartCard-inline\")\n\n### Use emit keyword for events\n\n[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L194](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L194 \"‌\"); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L201](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L201 \"‌\"); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/SortedTroves.sol#L198](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/SortedTroves.sol#L198 \"‌\")\n\n### RedemptionHelper not included in function name/revert string\n\n[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/ActivePool.sol#L327-L335](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L327-L335 \"‌\")\n\n### Inconsistent use of uint/uint256\n\nCan cause issues when encoding (but all fine currently it seems)\n\n### Could precompute addresses beforehand instead of setAddresses functions\n\n[https://github.com/transmissions11/solmate/issues/207](https://github.com/transmissions11/solmate/issues/207 \"‌\")\n\n### Re-entrancy risk in openTrove\n\nAlthough unlikely bad collateral will be included [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L231](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L231 \"‌\")\n\n### Use enum for comparisons without casting to uint\n\n[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L543](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L543 \"‌\")\n\n### Inconsistent use of `_100pct` / `DECIMAL_PRECISION`\n\n[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/BorrowerOperations.sol#L650](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/BorrowerOperations.sol#L650 \"‌\"); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/TroveManager.sol#L1412](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/TroveManager.sol#L1412 \"‌\")\n\n### Typehashes correct but use keccak256 to avoid making mistakes\n\n(evaluated at compile time anyway) [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Core/contracts/LUSDToken.sol#L41-L44](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/LUSDToken.sol#L41-L44 \"‌\")\n\n### `withdrawFromSp` doesn't `_requireNonZeroAmount()` unlike `provideToSP`\n\n… but gains are paid out and snapshots updated without sending LUSD. Perhaps should be consistent between functions though.\n\n### Remove console.log imports\n\nAll instances should be removed\n\n### Is lack of initializer access control intentional?\n\n[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L62-L67](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L62-L67 \"‌\")\n\n### No rewards swapped in `_harvestCore`\n\nWhen \\`steps\\` are not initialized it seems admin has to \\`setHarvestSteps\\` first, but this may not happen so rewards aren't swapped. [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L114-L125](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L114-L125 \"‌\")\n\n### Use `_disableInitializers()`\n\n[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L61](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/abstract/ReaperBaseStrategyv4.sol#L61 \"‌\")\n\n### Remove deployer default admin role\n\nDefault admin is reserved for most privileged role which should be multisig [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L132](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L132 \"‌\")\n\n### 20BPS erronously set to 20%\n\n[https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L155](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L155 \"‌\"); [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperVaultV2.sol#L181](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L155 \"‌\")\n\n### Follow CEI\n\nCEI violation. Re-entrancy which could affect locked profit calculations below or chain with burning shares before charging fees in `_withdraw`. Although would require a malicious strategy which massively lowers likelihood and hence severity. [https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L528](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L528 \"smartCard-inline\")\n\n### Gas\n\ncould save a call by using \\`type(uint256).max\\` here as function performs min againt withdrawable amount anyway [https://github.com/code-423n4/2023-02-ethos/blob/main/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L105](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperStrategyGranarySupplyOnly.sol#L105 \"‌\")",
+        "descData": {
+            "emoji": {}
+        },
+        "due": null,
+        "dueReminder": null,
+        "email": null,
+        "idBoard": "641af04d96b74c82177e1e67",
+        "idChecklists": [],
+        "idList": "641af04d96b74c82177e1e71",
+        "idMembers": [],
+        "idMembersVoted": [],
+        "idShort": 13,
+        "idAttachmentCover": null,
+        "labels": [
+            {
+                "id": "641af04d96b74c82177e1ef1",
+                "idBoard": "641af04d96b74c82177e1e67",
+                "name": "QA",
+                "color": "green"
+            }
+        ],
+        "idLabels": [
+            "641af04d96b74c82177e1ef1"
+        ],
+        "manualCoverAttachment": false,
+        "name": "QA Findings",
+        "pos": 1245183,
+        "shortLink": "N0Hux3bD",
+        "shortUrl": "https://trello.com/c/N0Hux3bD",
+        "start": null,
+        "subscribed": false,
+        "url": "https://trello.com/c/N0Hux3bD/13-qa-findings",
+        "cover": {
+            "idAttachment": null,
+            "color": null,
+            "idUploadedBackground": null,
+            "size": "normal",
+            "brightness": "dark",
+            "idPlugin": null
+        },
+        "isTemplate": false,
+        "cardRole": null
+    }
+]

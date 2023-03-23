@@ -1,30 +1,96 @@
 from .finding import Finding
 from typing import List
 import csv
+import sys
+import logging as log
+import requests
+import os
+import re
+
+log.basicConfig(level=log.INFO)
+
 
 OUTPUT_FILE_DEFAULT_NAME = "output.md"
 
 FINDINGS_SUMMARY_HEADER = """
-| Finding                                                                             | Severity | Status   |
-| :-----------------------------------------------------------------------------------| :------- | :------- |
+| Finding                                                                                                 | Severity | Status   |
+| :-------------------------------------------------------------------------------------------------------| :------- | :------- |
 """
 
 SEVERITY_ORDER = {"H": 1, "M": 2, "L": 3, "Q": 4, "G": 5}
 
+GET_LISTS_FROM_A_BOARD_URL = "https://api.trello.com/1/boards/{}/lists?key={}&token={}"
+GET_CARDS_IN_A_LIST_URL = "https://api.trello.com/1/lists/{}/cards?key={}&token={}"
+GET_ATTACHMENTS_FROM_A_CARD_URL = (
+    "https://api.trello.com/1/cards/{}/attachments?key={}&token={}"
+)
+DOWNLOAD_ATTACHMENT_FROM_A_CARD_URL = (
+    "https://api.trello.com/1/cards/{}/attachments/{}/download/{}"
+)
+CARD_REPORT_NAME = "report.md"
+
+TRELLO_API_KEY_ENVIRONMENT_VAR = "TRELLO_API_KEY"
+TRELLO_API_TOKEN_ENVIRONMENT_VAR = "TRELLO_API_TOKEN"
+
 
 class FindingList:
-    def __init__(self, csv_file: str = None):
+    def __init__(
+        self,
+        csv_file_or_board_id: str = "",
+        attachment_name: str = None,
+        api_key: str = None,
+        token: str = None,
+    ):
         """A finding in an audit report"""
-        if csv_file:
-            self.findings_list: List[
-                Finding
-            ] = self.generate_markdown_findings_list_from_csv(csv_file)
+        self.api_key = (
+            os.getenv(TRELLO_API_KEY_ENVIRONMENT_VAR) if not api_key else api_key
+        )
+        self.token = os.getenv(TRELLO_API_TOKEN_ENVIRONMENT_VAR) if not token else token
+        self._validate_args(
+            csv_file_or_board_id, attachment_name, self.api_key, self.token
+        )
+        self.csv_file_or_board_id = csv_file_or_board_id
+        self.attachment_name = attachment_name
+        self.report_list_id = None
+
+        if csv_file_or_board_id:
+            if ".csv" not in csv_file_or_board_id:
+                self.set_board_data_from_endpoint()
+            else:
+                self.findings_list: List[
+                    Finding
+                ] = self.generate_markdown_findings_list_from_csv(csv_file_or_board_id)
             self.sort_findings_list()
             self.summary_report: str = self.create_summary_report()
 
     def __str__(self):
         for finding in self.findings_list:
             print(finding + "\n")
+
+    def get_board_id_from_endpoint(self) -> str:
+        return self.csv_file_or_board_id.split("/")[-1]
+
+    @staticmethod
+    def _validate_args(
+        csv_file_or_board_id: str,
+        use_attachment_name_for_report: str,
+        api_key: str,
+        token: str,
+    ):
+        if ".csv" not in csv_file_or_board_id:
+            if not api_key:
+                log.error("You must provide an API key to use a board ID")
+                sys.exit(1)
+            if not token:
+                log.error("You must provide a token to use a board ID")
+                sys.exit(1)
+        if use_attachment_name_for_report:
+            if not api_key:
+                log.error("You must provide an API key to use attachments")
+                sys.exit(1)
+            if not token:
+                log.error("You must provide a token to use attachments")
+                sys.exit(1)
 
     def set_findings_list_from_csv(self, csv_file: str):
         self.findings_list = self.generate_markdown_findings_list_from_csv(csv_file)
@@ -59,17 +125,15 @@ class FindingList:
         return findings_list
 
     @staticmethod
-    def custom_sort_key(finding):
+    def custom_sort_key(finding: Finding):
         return (SEVERITY_ORDER.get(finding.severity, 6), finding.number)
 
-    @classmethod
     def get_sorted_findings_list(self, findings_list: List[Finding]) -> List[Finding]:
         return sorted(findings_list, key=self.custom_sort_key)
 
     def sort_findings_list(self):
         self.findings_list = self.get_sorted_findings_list(self.findings_list)
 
-    @classmethod
     def read_csv(self, csv_file: str) -> List[str]:
         rows = []
         with open(csv_file, "r") as csvfile:
@@ -78,7 +142,6 @@ class FindingList:
                 rows.append(row)
         return rows
 
-    @classmethod
     def get_header_indexes_from_header_row(self, row: List[str]) -> dict:
         lowercase_row_headers = [s.lower() for s in row]
         list_name_index = lowercase_row_headers.index("list name")
@@ -94,9 +157,7 @@ class FindingList:
             finding_title_index,
         )
 
-    @classmethod
     def get_filtered_rows(self, rows: List[str]) -> List[str]:
-
         (
             list_name_index,
             archived_index,
@@ -134,10 +195,13 @@ class FindingList:
         for finding in self.findings_list:
             print(finding)
 
-    def save_to_output_file(self, output_file: str = None) -> None:
+    def save_to_output_file(
+        self, output_file: str = None, text_before: str = ""
+    ) -> None:
         if not output_file:
             output_file = OUTPUT_FILE_DEFAULT_NAME
         with open(output_file, "w") as f:
+            f.write(text_before)
             f.write(self.summary_report)
             for finding in self.findings_list:
                 f.write(str(finding) + "\n")
@@ -162,3 +226,71 @@ class FindingList:
 
     def set_findings_summary(self):
         self.summary_report = self.create_summary_report()
+
+    def set_board_data_from_endpoint(self):
+        lists_from_board_request_response = requests.get(
+            GET_LISTS_FROM_A_BOARD_URL.format(
+                self.csv_file_or_board_id, self.api_key, self.token
+            )
+        )
+        list_of_lists = lists_from_board_request_response.json()
+        for list in list_of_lists:
+            if list["name"].lower() == "report":
+                self.report_list_id = list["id"]
+        if not self.report_list_id:
+            log.error(
+                f"Could not find a list named 'Report' in the board with id {self.csv_file_or_board_id}"
+            )
+            sys.exit(1)
+
+        cards_from_list_response = requests.get(
+            GET_CARDS_IN_A_LIST_URL.format(
+                self.report_list_id, self.api_key, self.token
+            )
+        )
+        cards_from_list_data = cards_from_list_response.json()
+        self.findings_list = []
+        for card in cards_from_list_data:
+            finding = Finding(
+                description=card["desc"],
+                severity=card["labels"][0]["name"][0],
+                title=card["name"],
+                id=card["id"],
+                url=card["url"],
+            )
+            finding.attachment_id = self.get_attachment_id_using_card_id(finding.id)
+            finding.description = self.download_attachment(
+                finding.id, finding.attachment_id, url=finding.url
+            )
+            self.findings_list.append(finding)
+
+    def get_attachment_id_using_card_id(self, card_id: str):
+        attachments_from_card_response = requests.get(
+            GET_ATTACHMENTS_FROM_A_CARD_URL.format(card_id, self.api_key, self.token)
+        )
+        attachments_from_card_data = attachments_from_card_response.json()
+        for attachment in attachments_from_card_data:
+            if attachment["name"] == CARD_REPORT_NAME:
+                return attachment["id"]
+        return None
+
+    def download_attachment(
+        self, card_id: str, attachment_id: str, url: str = None
+    ) -> str:
+        # "Authorization: OAuth oauth_consumer_key=\"{{key}}\", oauth_token=\"{{token}}\""
+        headers = {
+            "Authorization": f'OAuth oauth_consumer_key="{self.api_key}", oauth_token="{self.token}"'
+        }
+        response = requests.get(
+            DOWNLOAD_ATTACHMENT_FROM_A_CARD_URL.format(
+                card_id, attachment_id, CARD_REPORT_NAME
+            ),
+            headers=headers,
+        )
+        if response.status_code >= 200 and response.status_code <= 299:
+            return response.text
+        # result = re.sub("\\r\\n", "\n", response.text)
+        # result = re.sub(r"\\\\", r"\\", result)
+        if url:
+            return f"Error getting attachment.\nPlease name the attachment to {CARD_REPORT_NAME}. The erroring Card ID:\n\t{card_id}\nURL:\n\t{url}."
+        return f'Error getting attachment.\nPlease name the attachment to "{CARD_REPORT_NAME}". The erroring Card ID:\n\t{card_id}. URL not provided.'
