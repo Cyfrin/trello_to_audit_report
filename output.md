@@ -1,114 +1,9 @@
----
-title: "Cyfrin LiquidSDIndexPool Mitigation Audit Report"
-author: Cyfrin.io
-date: March 7, 2023
-header-includes:
-  - \usepackage{titling}
-  - \usepackage{graphicx}
----
-
-\begin{titlepage}
-    \centering
-    \begin{figure}[h]
-        \centering
-        \includegraphics[width=0.5\textwidth]{./examples/cyfrin-logo.pdf} 
-    \end{figure}
-    \vspace*{2cm}
-    {\Huge\bfseries LinkPool LiquidSDIndexPool Audit Report\par}
-    \vspace{1cm}
-    {\Large Version 2.0\par}
-    \vspace{2cm}
-    {\Large\itshape Cyfrin.io\par}
-    \vfill
-    {\large \today\par}
-\end{titlepage}
-
-\maketitle
-
-# LinkPool LiquidSDIndexPool Audit Report
-
-Version 1.0
-
-Prepared by: [Cyfrin](https://cyfrin.io)
-Lead Auditors: 
-
-- [Patrick Collins](https://twitter.com/PatrickAlphaC)
-
-- [Ben Sacchetti](https://twitter.com/dark_bends)
- 
-Assisting Auditors:
-
-- [Giovanni Di Siena](https://twitter.com/giovannidisiena)
-
-- [Hans](https://twitter.com/hansfriese)
-
-## Disclaimer 
-
-The Cyfrin team makes all effort to find as many vulnerabilities in the code in the given time period, but holds no responsibilities for the the findings provided in this document. A security audit by the team is not an endorsement of the underlying business or product. The audit was time-boxed to two weeks, and the review of the code is solely on the security aspects of the solidity implementation of the contracts. 
-
-
-# Protocol Summary
-
-The LinkPool LiquidSDIndexPool protocol allows users to deposit liquid staking derivative tokens (LSDs) like Rocket Pool ETH (rETH) & Lido ETH (stETH) and, by doing so, receive a token that represents holding a basket of these assets in return. The protocol makes a fee on withdrawls.
-
-This product intends to provide exposure to ETH Staking by averaging rate of the interest across multiple staked ETH derivative protocols. 
-
-# Audit Details 
-
-## Scope Of Audit
-
-Between Februrary 6th 2023 - Feb 17th 2023, the Cyfrin team conducted an audit on the `liquidSDIndex` folder of their [staking-contracts-v2](https://github.com/linkpoolio/staking-contracts-v2) repository. The scope of the audit was as follows:
-
-1. Full audit of the single folder of contracts in the git repository specified by linkpool
-   1.  Commit hash: [7084a32](https://github.com/linkpoolio/staking-contracts-v2/tree/7084a329a6a42791941bfad74d1550d1832defb1) of [staking-contracts-v2](https://github.com/linkpoolio/staking-contracts-v2)
-   2.  Contracts in the `liquidSDIndex` folder: `staking-contracts-v2/contracts/liquidSDIndex/`
-2. Out of scope
-   1. The test folder & test contracts in `liquidSDIndex` folder
-
-## Severity Criteria
-
-- High: Assets can be stolen/lost/compromised directly (or indirectly if there is a valid attack path that does not have hand-wavy hypotheticals).
-- Medium: Assets not at direct risk, but the function of the protocol or its availability could be impacted, or leak value with a hypothetical attack path with stated assumptions, but external requirements.
-- Low: Low impact and low/medium likelihood events where assets are not at risk (or a trivia amount of assets are), state handling might be off, functions are incorrect as to natspec, issues with comments, etc. 
-- Informational / Non-Critial: A non-security issue, like a suggested code improvement, a comment, a renamed variable, etc. Auditors did not attempt to find an exhaustive list of these.  
-- Gas: Gas saving / performance suggestions. Auditors did not attempt to find an exhaustive list of these.  
-
-## Tools used
-
-- [Slither](https://github.com/crytic/slither)
-- [4naly3er](https://github.com/Picodes/4naly3er)
-- [foundry](https://book.getfoundry.sh/)
-- [Hardhat](https://hardhat.org/)
-- [Solodit](https://solodit.xyz/)
-
-## Summary Of Findings
-
-We highly recommend writing fuzz & invariant tests to catch these issues moving forward. 
-
-High   - 2
-
-Medium - 5
-
-Low    - 10
-
-
-*Key: Ack == Acknowledged*
-
 
 | Finding                                                                                                 | Severity | Status   |
 | :-------------------------------------------------------------------------------------------------------| :------- | :------- |
 | [H-1 ActivePool._rebalance() does not take into account the case when the vault's strategy gets loss](#h-1-activepool_rebalance-does-not-take-into-account-the-case-when-the-vaults-strategy-gets-loss) |H| Open |
 | [H-1 Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.](#h-1-users-would-lose-some-shares-during-withdrawal-in-reapervaultv2_withdraw) |H| Open |
 | [M-1 "Dust" collaterals/shares are not cleared in ActivePool._rebalance()](#m-1-dust-collateralsshares-are-not-cleared-in-activepool_rebalance) |M| Open |
-| [M-1 Some tokens do not allow changing allowance from non-zero to non-zero](#m-1-some-tokens-do-not-allow-changing-allowance-from-non-zero-to-non-zero) |M| Open |
-| [M-1 Lack of blacklisting collateral](#m-1-lack-of-blacklisting-collateral) |M| Open |
-| [M-1 strategy.activation is not reset on revoking and this prevents adding it back](#m-1-strategyactivation-is-not-reset-on-revoking-and-this-prevents-adding-it-back) |M| Open |
-| [M-1 In `ReaperVaultV2`, we should update `lockedProfit` and `lastReport` before changing `lockedProfitDegradation`.](#m-1-in-reapervaultv2-we-should-update-lockedprofit-and-lastreport-before-changing-lockedprofitdegradation) |M| Open |
-| [M-1 `ReaperBaseStrategyv4.harvest()` might revert in an emergency.](#m-1-reaperbasestrategyv4harvest-might-revert-in-an-emergency) |M| Open |
-| [M-1 There should be an option to rescue the underlying token in `ReaperVaultV2.sol`](#m-1-there-should-be-an-option-to-rescue-the-underlying-token-in-reapervaultv2sol) |M| Open |
-| [M-1 `ReaperVaultV2._withdraw()` will revert if one strategy in `withdrawalQueue` is in the debt.](#m-1-reapervaultv2_withdraw-will-revert-if-one-strategy-in-withdrawalqueue-is-in-the-debt) |M| Open |
-| [M-1 The vault might charge more underlying tokens from strategies because `ReaperVaultV2.report()` uses `repayment` wrongly.](#m-1-the-vault-might-charge-more-underlying-tokens-from-strategies-because-reapervaultv2report-uses-repayment-wrongly) |M| Open |
-| [Q-1 QA Findings](#q-1-qa-findings) |Q| Open |
 
 ## [H-1] ActivePool._rebalance() does not take into account the case when the vault's strategy gets loss
 ActivePool.\_rebalance() does not consider the case when the vault's strategy gets loss
@@ -177,89 +72,104 @@ Do not assume `sharesToAssets>yieldingAmount` at all places mentioned and handle
 
 
 ## [H-1] Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ed3
-URL:
-	https://trello.com/c/I5aIjN3X/15-users-would-lose-some-shares-during-withdrawal-in-reapervaultv2withdraw.
+Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.
+
+https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L401
+
+## Impact
+`ReaperVaultV2._withdraw()` burns 100% of shares even if the vault balance is less than the required underlying amount.
+
+As a result, users would lose some shares during withdrawal.
+
+## Proof of Concept
+Users can receive underlying tokens by burning their shares using `_withdraw()`.
+
+If the vault doesn't have enough underlying balance, it withdraws from strategies inside `withdrawalQueue`.
+
+```solidity
+File: ReaperVaultV2.sol
+359:     function _withdraw(
+360:         uint256 _shares,
+361:         address _receiver,
+362:         address _owner
+363:     ) internal nonReentrant returns (uint256 value) {
+364:         require(_shares != 0, "Invalid amount");
+365:         value = (_freeFunds() * _shares) / totalSupply();
+366:         _burn(_owner, _shares);
+367: 
+368:         if (value > token.balanceOf(address(this))) { 
+398:             ....
+399:             vaultBalance = token.balanceOf(address(this));
+400:             if (value > vaultBalance) {
+401:                 value = vaultBalance; //@audit should reduce shares accordingly
+402:             }
+403: 
+404:             require(
+405:                 totalLoss <= ((value + totalLoss) * withdrawMaxLoss) / PERCENT_DIVISOR,
+406:                 "Withdraw loss exceeds slippage"
+407:             );
+408:         }
+409: 
+410:         token.safeTransfer(_receiver, value);
+411:         emit Withdraw(msg.sender, _receiver, _owner, value, _shares);
+412:     }
+```
+
+After withdrawing from the strategies of `withdrawalQueue`, it applies the max cap at L401.
+
+But as we can see from [setWithdrawalQueue()](https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L258), `withdrawalQueue` wouldn't contain all of the active strategies and the above condition at L400 will be true.
+
+In this case, users will get fewer underlying amounts after burning the whole shares that they requested.
+
+As a reference, it recalculates the shares for the above case in [Yearn vault](https://github.com/yearn/yearn-vaults/blob/master/contracts/Vault.vy#L1151).
+
+```solidity
+    if value > vault_balance:
+        value = vault_balance
+        # NOTE: Burn # of shares that corresponds to what Vault has on-hand,
+        #       including the losses that were incurred above during withdrawals
+        shares = self._sharesForAmount(value + totalLoss)
+```
+
+## Tools Used
+Manual Review
+
+## Recommended Mitigation Steps
+We should recalculate the shares and burn them rather than burn all shares.
 
 
 ## [M-1] "Dust" collaterals/shares are not cleared in ActivePool._rebalance()
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ec9
-URL:
-	https://trello.com/c/49MGZSDk/10-dust-collaterals-shares-are-not-cleared-in-activepoolrebalance.
+Dust collaterals/shares are not cleared in ActivePool.\_rebalance()
 
+https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L252
+https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L267
 
-## [M-1] Some tokens do not allow changing allowance from non-zero to non-zero
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ebf
-URL:
-	https://trello.com/c/OOuF4eQO/5-some-tokens-do-not-allow-changing-allowance-from-non-zero-to-non-zero.
+## Impact
 
+The unclaimed “dust” profit will be locked in the vault. Because the affected amount will be not substantial and it will occur only for edge cases, evaluate the severity to Med.
 
-## [M-1] Lack of blacklisting collateral
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ecb
-URL:
-	https://trello.com/c/SprHnrjn/11-lack-of-blacklisting-collateral.
+## Proof of Concept
 
+The protocol uses `yieldClaimThreshold` to prevent unnecessary transfer of dust collateral profit (maybe to save gas?).
 
-## [M-1] strategy.activation is not reset on revoking and this prevents adding it back
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ecd
-URL:
-	https://trello.com/c/2Gq8Otda/12-strategyactivation-is-not-reset-on-revoking-and-this-prevents-adding-it-back.
+```solidity
+ActivePool.sol
+252:         if (vars.profit < yieldClaimThreshold[_collateral]) {
+253:             vars.profit = 0;//@audit-issue check how the dust remaining in the vault are processed in the end
+254:         }
+```
 
+And if `_amountLeavingPool==collAmount[_collateral]`, i.e. for the “last” withdrawal from the vault, the profit under the threshold is not claimed while the protocol considers it does not have any collaterals left in the vault.
 
-## [M-1] In `ReaperVaultV2`, we should update `lockedProfit` and `lastReport` before changing `lockedProfitDegradation`.
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ed5
-URL:
-	https://trello.com/c/Gp7G4gfF/16-in-reapervaultv2-we-should-update-lockedprofit-and-lastreport-before-changing-lockedprofitdegradation.
+As a result, the unclaimed “dust” profit will be locked in the vault. Because the affected amount will be not substantial and it will occur only for edge cases, evaluate the severity to Med.
 
+## Tools Used
 
-## [M-1] `ReaperBaseStrategyv4.harvest()` might revert in an emergency.
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1edb
-URL:
-	https://trello.com/c/vxP44r6v/19-reaperbasestrategyv4harvest-might-revert-in-an-emergency.
+Manual Review
 
+## Recommended Mitigation Steps
 
-## [M-1] There should be an option to rescue the underlying token in `ReaperVaultV2.sol`
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1edd
-URL:
-	https://trello.com/c/RL01tBvB/20-there-should-be-an-option-to-rescue-the-underlying-token-in-reapervaultv2sol.
+At L266, check if `vars.finalBalance==0` and add the profit to the target withdraw amount (or redeem the whole owned shares).
+The redeemed profit will be distributed by the following logic.
 
-
-## [M-1] `ReaperVaultV2._withdraw()` will revert if one strategy in `withdrawalQueue` is in the debt.
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1edf
-URL:
-	https://trello.com/c/1KJkGGEC/21-reapervaultv2withdraw-will-revert-if-one-strategy-in-withdrawalqueue-is-in-the-debt.
-
-
-## [M-1] The vault might charge more underlying tokens from strategies because `ReaperVaultV2.report()` uses `repayment` wrongly.
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ee1
-URL:
-	https://trello.com/c/hCk2C0CT/22-the-vault-might-charge-more-underlying-tokens-from-strategies-because-reapervaultv2report-uses-repayment-wrongly.
-
-
-## [Q-1] QA Findings
-Error getting attachment.
-Please name the attachment to report.md. The erroring Card ID:
-	641af04d96b74c82177e1ecf
-URL:
-	https://trello.com/c/N0Hux3bD/13-qa-findings.
 
