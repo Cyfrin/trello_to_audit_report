@@ -272,6 +272,8 @@ class FindingList:
         for attachment in attachments_from_card_data:
             if attachment["name"] == CARD_REPORT_NAME:
                 return attachment["id"]
+        if len(attachments_from_card_data) > 0:
+            return attachments_from_card_data[0]["id"]
         return None
 
     def download_attachment(
@@ -289,8 +291,6 @@ class FindingList:
         )
         if response.status_code >= 200 and response.status_code <= 299:
             return response.text
-        # result = re.sub("\\r\\n", "\n", response.text)
-        # result = re.sub(r"\\\\", r"\\", result)
         if url:
             return f"Error getting attachment.\nPlease name the attachment to {CARD_REPORT_NAME}. The erroring Card ID:\n\t{card_id}\nURL:\n\t{url}."
         return f'Error getting attachment.\nPlease name the attachment to "{CARD_REPORT_NAME}". The erroring Card ID:\n\t{card_id}. URL not provided.'
