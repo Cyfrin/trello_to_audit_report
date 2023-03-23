@@ -269,9 +269,15 @@ class FindingList:
             GET_ATTACHMENTS_FROM_A_CARD_URL.format(card_id, self.api_key, self.token)
         )
         attachments_from_card_data = attachments_from_card_response.json()
+        first_md_file = None
         for attachment in attachments_from_card_data:
+            if attachment["name"].endswith(".md"):
+                if not first_md_file:
+                    first_md_file = attachment["id"]
             if attachment["name"] == CARD_REPORT_NAME:
                 return attachment["id"]
+        if first_md_file:
+            return first_md_file
         if len(attachments_from_card_data) > 0:
             return attachments_from_card_data[0]["id"]
         return None

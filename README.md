@@ -97,7 +97,7 @@ To create a report directly from Trello, do the following:
 4. Make sure you have the following:
    1. The list of findings are in a list labeled "report 
       1. <img src="./img/list-report.png" width="225">
-   2. Each report has the report written and named `report.md` (if you don't have one, it'll just grab the first attachment)
+   2. Each report has the report written and named `report.md` (if you don't have one, it'll just grab the first `.md` attachment. If no `.md`, the first attachment. If no attachment, it will error. )
    3. Each report has a label of "HIGH", "MEDIUM", "LOW", "QA", or "GAS" 
       1. <img src="./img/requirements.png" width="225">
 5. Run the following
