@@ -1,4 +1,5 @@
 import re
+from typing import List
 
 
 class Finding:
@@ -8,12 +9,19 @@ class Finding:
         severity: str = "",
         title: str = "",
         number: int = 1,
+        id: str = None,
+        url: str = None,
+        attachment_id: str = None,
     ):
         """A finding in an audit report"""
         self.description = description
         self.severity = severity
         self.title = title
         self.number = number
+        self.finding_report = ""
+        self.id = id
+        self.url = url
+        self.attachment_id = attachment_id
 
     def __str__(self):
         return f"""
