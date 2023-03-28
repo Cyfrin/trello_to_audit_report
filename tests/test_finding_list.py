@@ -42,3 +42,13 @@ def test_create_summary_report(findings_list):
     findings_list.set_findings_list_from_csv(FULL_CSV_FILE_NAME)
     summary_report = findings_list.create_summary_report()
     # TODO: Add the assert lol
+
+
+def test_get_and_update_severity_counter(findings_list):
+    # Arrange
+    findings_list.set_findings_list_from_csv(FULL_CSV_FILE_NAME)
+    assert findings_list.severity_counter["H"] == 1
+    # Act
+    findings_list.get_and_update_severity_counter("H")
+    # Assert
+    assert findings_list.severity_counter["H"] == 2
