@@ -43,3 +43,16 @@ class Finding:
         summary_title = re.sub(r"\s+", "-", summary_title)
         summary_title = re.sub(r"[^a-z0-9-_]", "", summary_title)
         return f"#{summary_title}"
+
+    def fix_markdown_headers(self):
+        """Formats the markdown headers to be in-line with the format of this document.
+
+        For example, if the markdown headers are:
+        # Impact
+        asdfasdfs
+
+        We will adjust it to:
+        ### Impact
+        """
+        self.description = re.sub(r"^\s*# ", "### ", self.description, flags=re.M)
+        self.description = re.sub(r"^\s*## ", "### ", self.description, flags=re.M)

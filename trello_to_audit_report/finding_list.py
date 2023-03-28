@@ -40,6 +40,7 @@ class FindingList:
         attachment_name: str = None,
         api_key: str = None,
         token: str = None,
+        verbatim_report: bool = False,
     ):
         """A finding in an audit report"""
         self.api_key = (
@@ -53,15 +54,20 @@ class FindingList:
         self.attachment_name = attachment_name
         self.report_list_id = None
         self.severity_counter = {}
+        self.verbatim_report = verbatim_report
+        self.findings_list = []
 
         if csv_file_or_board_id:
             if ".csv" not in csv_file_or_board_id:
-                self.set_board_data_from_endpoint()
+                self.findings_list = self.generate_board_data_from_endpoint()
             else:
                 self.findings_list: List[
                     Finding
                 ] = self.generate_markdown_findings_list_from_csv(csv_file_or_board_id)
             self.sort_findings_list()
+            if not self.verbatim_report:
+                for finding in self.findings_list:
+                    finding.fix_markdown_headers()
             self.summary_report: str = self.create_summary_report()
 
     def __str__(self):
@@ -230,7 +236,7 @@ class FindingList:
     def set_findings_summary(self):
         self.summary_report = self.create_summary_report()
 
-    def set_board_data_from_endpoint(self):
+    def generate_board_data_from_endpoint(self) -> List[Finding]:
         lists_from_board_request_response = requests.get(
             GET_LISTS_FROM_A_BOARD_URL.format(
                 self.csv_file_or_board_id, self.api_key, self.token
@@ -252,7 +258,7 @@ class FindingList:
             )
         )
         cards_from_list_data = cards_from_list_response.json()
-        self.findings_list = []
+        findings_list = []
         for card in cards_from_list_data:
             finding = Finding(
                 description=card["desc"],
@@ -266,7 +272,8 @@ class FindingList:
                 finding.id, finding.attachment_id, url=finding.url
             )
             finding.number = self.get_and_update_severity_counter(finding.severity)
-            self.findings_list.append(finding)
+            findings_list.append(finding)
+        return findings_list
 
     def get_attachment_id_using_card_id(self, card_id: str):
         attachments_from_card_response = requests.get(

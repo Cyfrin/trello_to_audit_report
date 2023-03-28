@@ -107,13 +107,11 @@ ActivePool.\_rebalance() does not consider the case when the vault's strategy ge
 https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L251
 https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L282
 https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L288
-
-## Impact
+### Impact
 
 The \_rebalance() reverts if a strategy gets loss.
 Because \_rebalance() is called on all important workflows, this leads to insolvency of the protocol.
-
-## Proof of Concept
+### Proof of Concept
 
 The protocol uses ReaperVaultERC4626 to manage the collateral assets and farm profit.
 The vaults are connected to whitelisted strategies.
@@ -156,12 +154,10 @@ ActivePool.sol
 ```
 
 Because \_rebalance() is called on all important workflows, this leads to insolvency of the protocol.
-
-## Tools Used
+### Tools Used
 
 Manual Review
-
-## Recommended Mitigation Steps
+### Recommended Mitigation Steps
 
 Do not assume `sharesToAssets>yieldingAmount` at all places mentioned and handle appropriately.
 
@@ -171,13 +167,11 @@ Do not assume `sharesToAssets>yieldingAmount` at all places mentioned and handle
 Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.
 
 https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L401
-
-## Impact
+### Impact
 `ReaperVaultV2._withdraw()` burns 100% of shares even if the vault balance is less than the required underlying amount.
 
 As a result, users would lose some shares during withdrawal.
-
-## Proof of Concept
+### Proof of Concept
 Users can receive underlying tokens by burning their shares using `_withdraw()`.
 
 If the vault doesn't have enough underlying balance, it withdraws from strategies inside `withdrawalQueue`.
@@ -222,15 +216,13 @@ As a reference, it recalculates the shares for the above case in [Yearn vault](h
 ```solidity
     if value > vault_balance:
         value = vault_balance
-        # NOTE: Burn # of shares that corresponds to what Vault has on-hand,
-        #       including the losses that were incurred above during withdrawals
+### NOTE: Burn # of shares that corresponds to what Vault has on-hand,
+###       including the losses that were incurred above during withdrawals
         shares = self._sharesForAmount(value + totalLoss)
 ```
-
-## Tools Used
+### Tools Used
 Manual Review
-
-## Recommended Mitigation Steps
+### Recommended Mitigation Steps
 We should recalculate the shares and burn them rather than burn all shares.
 
 
@@ -239,12 +231,10 @@ Dust collaterals/shares are not cleared in ActivePool.\_rebalance()
 
 https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L252
 https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Core/contracts/ActivePool.sol#L267
-
-## Impact
+### Impact
 
 The unclaimed “dust” profit will be locked in the vault. Because the affected amount will be not substantial and it will occur only for edge cases, evaluate the severity to Med.
-
-## Proof of Concept
+### Proof of Concept
 
 The protocol uses `yieldClaimThreshold` to prevent unnecessary transfer of dust collateral profit (maybe to save gas?).
 
@@ -258,12 +248,10 @@ ActivePool.sol
 And if `_amountLeavingPool==collAmount[_collateral]`, i.e. for the “last” withdrawal from the vault, the profit under the threshold is not claimed while the protocol considers it does not have any collaterals left in the vault.
 
 As a result, the unclaimed “dust” profit will be locked in the vault. Because the affected amount will be not substantial and it will occur only for edge cases, evaluate the severity to Med.
-
-## Tools Used
+### Tools Used
 
 Manual Review
-
-## Recommended Mitigation Steps
+### Recommended Mitigation Steps
 
 At L266, check if `vars.finalBalance==0` and add the profit to the target withdraw amount (or redeem the whole owned shares).
 The redeemed profit will be distributed by the following logic.
