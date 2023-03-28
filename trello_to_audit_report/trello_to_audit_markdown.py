@@ -71,6 +71,12 @@ def main():
         "--pdf-output",
         help="Generate a PDF from the markdown file at this location. You'll need pandoc installed.",
     )
+    parser.add_argument(
+        "--verbatim-report",
+        default=False,
+        action="store_true",
+        help="If this is enabled the script won't try to format the downloaded reports.",
+    )
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -89,6 +95,7 @@ def main():
         attachment_name=args.use_attachment_name_for_report,
         api_key=args.api_key,
         token=args.token,
+        verbatim_report=args.verbatim_report,
     )
 
     text_before = ""
