@@ -98,7 +98,7 @@ Low    - 10
 | Finding                                                                                                 | Severity | Status   |
 | :-------------------------------------------------------------------------------------------------------| :------- | :------- |
 | [H-1 ActivePool._rebalance() does not take into account the case when the vault's strategy gets loss](#h-1-activepool_rebalance-does-not-take-into-account-the-case-when-the-vaults-strategy-gets-loss) |H| Open |
-| [H-1 Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.](#h-1-users-would-lose-some-shares-during-withdrawal-in-reapervaultv2_withdraw) |H| Open |
+| [H-2 Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.](#h-2-users-would-lose-some-shares-during-withdrawal-in-reapervaultv2_withdraw) |H| Open |
 | [M-1 "Dust" collaterals/shares are not cleared in ActivePool._rebalance()](#m-1-dust-collateralsshares-are-not-cleared-in-activepool_rebalance) |M| Open |
 
 ## [H-1] ActivePool._rebalance() does not take into account the case when the vault's strategy gets loss
@@ -167,7 +167,7 @@ Do not assume `sharesToAssets>yieldingAmount` at all places mentioned and handle
 
 
 
-## [H-1] Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.
+## [H-2] Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.
 Users would lose some shares during withdrawal in `ReaperVaultV2._withdraw()`.
 
 https://github.com/code-423n4/2023-02-ethos/blob/73687f32b934c9d697b97745356cdf8a1f264955/Ethos-Vault/contracts/ReaperVaultV2.sol#L401

@@ -52,6 +52,7 @@ class FindingList:
         self.csv_file_or_board_id = csv_file_or_board_id
         self.attachment_name = attachment_name
         self.report_list_id = None
+        self.severity_counter = {}
 
         if csv_file_or_board_id:
             if ".csv" not in csv_file_or_board_id:
@@ -108,7 +109,6 @@ class FindingList:
         ) = self.get_header_indexes_from_header_row(rows[0])
 
         findings_list = []
-        severity_counter = {}
 
         for filtered_row in filtered_rows:
             markdown_finding = self.create_finding_from_filtered_row(
@@ -117,10 +117,9 @@ class FindingList:
                 finding_severity_index,
                 finding_title_index,
             )
-            severity_counter[markdown_finding.severity] = (
-                severity_counter.get(markdown_finding.severity, 0) + 1
+            markdown_finding.number = self.get_and_update_severity_counter(
+                markdown_finding.severity
             )
-            markdown_finding.number = severity_counter[markdown_finding.severity]
             findings_list.append(markdown_finding)
         return findings_list
 
@@ -141,6 +140,10 @@ class FindingList:
             for row in csvreader:
                 rows.append(row)
         return rows
+
+    def get_and_update_severity_counter(self, severity: str) -> int:
+        self.severity_counter[severity] = self.severity_counter.get(severity, 0) + 1
+        return self.severity_counter[severity]
 
     def get_header_indexes_from_header_row(self, row: List[str]) -> dict:
         lowercase_row_headers = [s.lower() for s in row]
@@ -262,6 +265,7 @@ class FindingList:
             finding.description = self.download_attachment(
                 finding.id, finding.attachment_id, url=finding.url
             )
+            finding.number = self.get_and_update_severity_counter(finding.severity)
             self.findings_list.append(finding)
 
     def get_attachment_id_using_card_id(self, card_id: str):
