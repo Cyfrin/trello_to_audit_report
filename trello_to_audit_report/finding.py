@@ -26,7 +26,7 @@ class Finding:
     def __str__(self):
         return f"""
 ## [{self.severity}-{self.number}] {self.title}
-{self.description}
+{self.description}\n
 """
 
     def get_summary_title(self) -> str:
@@ -54,5 +54,5 @@ class Finding:
         We will adjust it to:
         ### Impact
         """
-        self.description = re.sub(r"^\s*# ", "### ", self.description, flags=re.M)
-        self.description = re.sub(r"^\s*## ", "### ", self.description, flags=re.M)
+        self.description = re.sub(r"^# ", "### ", self.description, flags=re.M)
+        self.description = re.sub(r"^## ", "### ", self.description, flags=re.M)

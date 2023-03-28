@@ -78,6 +78,13 @@ def main():
         help="If this is enabled the script won't try to format the downloaded reports.",
     )
 
+    parser.add_argument(
+        "-e",
+        "--expect-single-ticket-for-severity",
+        default="Q",
+        help="If you plan on having a severity level be a single ticket, add the severity here. Note: You MUST use this format for a single ticket:\n## [S-N] Title\n<description>\n\nWhere:\n- S: The severity.\n- N: The number.",
+    )
+
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -96,6 +103,7 @@ def main():
         api_key=args.api_key,
         token=args.token,
         verbatim_report=args.verbatim_report,
+        expect_single_ticket_for_severity=args.expect_single_ticket_for_severity,
     )
 
     text_before = ""

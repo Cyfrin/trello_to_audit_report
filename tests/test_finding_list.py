@@ -52,3 +52,8 @@ def test_get_and_update_severity_counter(findings_list):
     findings_list.get_and_update_severity_counter("H")
     # Assert
     assert findings_list.severity_counter["H"] == 2
+
+
+# TODO
+def test_update_findings_for_single_ticket_severity():
+    pass

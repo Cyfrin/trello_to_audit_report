@@ -17,7 +17,7 @@ FINDINGS_SUMMARY_HEADER = """
 | :-------------------------------------------------------------------------------------------------------| :------- | :------- |
 """
 
-SEVERITY_ORDER = {"H": 1, "M": 2, "L": 3, "Q": 4, "G": 5}
+SEVERITY_ORDER = {"H": 1, "M": 2, "L": 3, "Q": 4, "I": 5, "NC": 6, "G": 7}
 
 GET_LISTS_FROM_A_BOARD_URL = "https://api.trello.com/1/boards/{}/lists?key={}&token={}"
 GET_CARDS_IN_A_LIST_URL = "https://api.trello.com/1/lists/{}/cards?key={}&token={}"
@@ -41,6 +41,7 @@ class FindingList:
         api_key: str = None,
         token: str = None,
         verbatim_report: bool = False,
+        expect_single_ticket_for_severity: str = None,
     ):
         """A finding in an audit report"""
         self.api_key = (
@@ -56,6 +57,7 @@ class FindingList:
         self.severity_counter = {}
         self.verbatim_report = verbatim_report
         self.findings_list = []
+        self.expect_single_ticket_for_severity = expect_single_ticket_for_severity
 
         if csv_file_or_board_id:
             if ".csv" not in csv_file_or_board_id:
@@ -64,10 +66,13 @@ class FindingList:
                 self.findings_list: List[
                     Finding
                 ] = self.generate_markdown_findings_list_from_csv(csv_file_or_board_id)
-            self.sort_findings_list()
             if not self.verbatim_report:
                 for finding in self.findings_list:
                     finding.fix_markdown_headers()
+            if self.expect_single_ticket_for_severity:
+                self.update_findings_for_single_ticket_severity()
+            self.sort_findings_list()
+
             self.summary_report: str = self.create_summary_report()
 
     def __str__(self):
@@ -98,6 +103,42 @@ class FindingList:
             if not token:
                 log.error("You must provide a token to use attachments")
                 sys.exit(1)
+
+    def update_findings_for_single_ticket_severity(self):
+        severity = self.expect_single_ticket_for_severity
+        found_findings = []
+        for finding in self.findings_list:
+            if finding.severity == severity:
+                found_findings.append(finding)
+                # Find all the lines that start with a finding like `## [H-1] Finding Title`
+                # We use 3 # cuz we changed the QA report to have 3 #'s
+                pattern = "### ["
+                qa_text_findings = finding.description.split(pattern)
+                # Extract the title, severity, description, and number from each, and create a new finding
+                for qa_text_finding in qa_text_findings:
+                    # Find the header line
+                    if len(qa_text_finding) < 1:
+                        continue
+                    finding_header = qa_text_finding.split("\n")[0]
+                    finding_title = finding_header[
+                        finding_header.find("]") + 1 :
+                    ].strip()
+                    finding_number = int(
+                        finding_header[
+                            finding_header.find("-") + 1 : finding_header.find("]")
+                        ]
+                    )
+                    finding_severity = finding_header[: finding_header.find("-")]
+                    finding_description = qa_text_finding.replace(finding_header, "")
+                    finding = Finding(
+                        description=finding_description,
+                        severity=finding_severity,
+                        title=finding_title,
+                        number=finding_number,
+                    )
+                    self.findings_list.append(finding)
+        for finding in found_findings:
+            self.findings_list.remove(finding)
 
     def set_findings_list_from_csv(self, csv_file: str):
         self.findings_list = self.generate_markdown_findings_list_from_csv(csv_file)
@@ -131,7 +172,7 @@ class FindingList:
 
     @staticmethod
     def custom_sort_key(finding: Finding):
-        return (SEVERITY_ORDER.get(finding.severity, 6), finding.number)
+        return (SEVERITY_ORDER.get(finding.severity, 8), finding.number)
 
     def get_sorted_findings_list(self, findings_list: List[Finding]) -> List[Finding]:
         return sorted(findings_list, key=self.custom_sort_key)

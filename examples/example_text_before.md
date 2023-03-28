@@ -1,11 +1,11 @@
 ---
 title: "Cyfrin LiquidSDIndexPool Mitigation Audit Report"
 author: Cyfrin.io
-date: March 7, 2023
 header-includes:
   - \usepackage{titling}
   - \usepackage{graphicx}
 linkcolor: blue
+urlcolor: blue
 ---
 \begin{titlepage}
     \centering

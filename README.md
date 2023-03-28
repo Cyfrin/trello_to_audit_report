@@ -121,6 +121,12 @@ We have some examples in this repo if you [installed from source](#from-source).
 trello_to_audit_report 1AhNmEQE --pdf-output examples/example_pdf.pdf --text-before-file examples/example_text_before.md -o ./examples/example_markdown.md
 ```
 
+Or, if you have a certain severity like QA in a single ticket, run the following:
+
+```
+trello_to_audit_report 1AhNmEQE --pdf-output examples/example_pdf.pdf --text-before-file examples/example_text_before.md -o ./examples/example_markdown.md -e Q
+```
+
 
 # More Resources
 
