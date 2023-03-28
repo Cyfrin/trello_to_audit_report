@@ -19,7 +19,6 @@ def test_set_board_data_from_endpoint(integration_findings_list):
 
 @pytest.mark.integration
 def test_get_attachment_id_using_card_id(integration_findings_list):
-
     attachment_id: str = integration_findings_list.get_attachment_id_using_card_id(
         INTEGRATION_TEST_CARD_ID
     )

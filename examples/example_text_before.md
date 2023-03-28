@@ -5,8 +5,8 @@ date: March 7, 2023
 header-includes:
   - \usepackage{titling}
   - \usepackage{graphicx}
+linkcolor: blue
 ---
-
 \begin{titlepage}
     \centering
     \begin{figure}[h]
